@@ -436,3 +436,56 @@ a:focus-visible, button:focus-visible {
 .policy-list { margin: 8px 0 10px 20px; font-size: 15px; }
 .policy-list li { margin-bottom: 6px; }
 .policy-list strong { color: var(--ink); }
+
+/* Campaign landing pages (hidden — not linked from main nav) */
+.lp-header {
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--rule);
+}
+.lp-header .wrap { display: flex; justify-content: space-between; align-items: center; }
+.lp-hero { padding: 60px 24px 20px; text-align: left; }
+.lp-hero h1 {
+  font-size: 38px;
+  max-width: 18ch;
+  margin-bottom: 18px;
+}
+.lp-hero .lp-sub {
+  font-size: 18px;
+  max-width: 56ch;
+  color: var(--charcoal);
+  margin-bottom: 30px;
+}
+.lp-checklist { padding: 20px 24px 10px; }
+.lp-checklist h2 { font-size: 24px; margin-bottom: 22px; }
+.lp-check-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-top: 1px solid var(--rule);
+  font-size: 17px;
+}
+.lp-check-item:first-of-type { border-top: none; }
+.lp-check-icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--accent);
+  margin-top: 2px;
+}
+.lp-bridge { padding: 30px 24px; font-size: 17px; max-width: 62ch; }
+.lp-proof {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 40px 24px;
+  text-align: center;
+  margin: 10px 0;
+}
+.lp-proof .stat-break-num { color: var(--paper); }
+.lp-proof .stat-break-label { color: #C9C3B4; }
+.lp-cta-block {
+  padding: 48px 24px 64px;
+  text-align: center;
+}
+.lp-cta-block h2 { font-size: 26px; margin-bottom: 16px; }
+.lp-cta-block .btn { font-size: 17px; padding: 14px 28px; }

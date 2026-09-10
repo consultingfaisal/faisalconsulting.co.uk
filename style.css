@@ -286,34 +286,28 @@ a:focus-visible, button:focus-visible {
 }
 .see-all a:hover { color: var(--accent); border-color: var(--accent); }
 
-/* Inline case-study charts */
-.cs-chart {
-  margin-top: 20px;
-  max-width: 320px;
+/* Bold stat-break panel (alternative to the small inline chart) */
+.stat-break {
+  margin: 28px calc(-1 * (50vw - 50%)) 0;
+  background: var(--ink);
+  padding: 44px 24px;
+  text-align: center;
 }
-.cs-chart svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-.cs-chart .chart-num {
+.stat-break-num {
   font-family: "Fraunces", serif;
-  font-size: 22px;
-  fill: #16233B;
+  font-size: 72px;
+  font-weight: 500;
+  color: #EDEAE1;
+  margin: 0 0 10px;
+  line-height: 1;
 }
-.cs-chart .chart-label {
+.stat-break-label {
   font-family: "Work Sans", sans-serif;
-  font-size: 13px;
-  fill: #2A2823;
+  font-size: 15px;
+  color: #C9C3B4;
+  max-width: 40ch;
+  margin: 0 auto;
 }
-.cs-chart .chart-sub {
-  font-family: "Work Sans", sans-serif;
-  font-size: 11px;
-  fill: #555555;
-}
-.chart-caption {
-  margin-top: 10px;
-  font-size: 13px;
-  color: var(--charcoal);
-  max-width: 32ch;
+@media (max-width: 600px) {
+  .stat-break-num { font-size: 48px; }
 }

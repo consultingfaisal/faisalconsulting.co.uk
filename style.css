@@ -424,7 +424,24 @@ a:focus-visible, button:focus-visible {
   border-top: 1px solid var(--rule);
 }
 .resource-card:first-of-type { border-top: 1px solid var(--rule); }
-.resource-card h2 { font-size: 22px; margin-bottom: 10px; }
+.resource-card h3 { font-size: 22px; margin-bottom: 10px; }
+.resource-group-title {
+  font-size: 26px;
+  margin: 44px 0 6px;
+  padding-top: 32px;
+  border-top: 1px solid var(--rule);
+}
+.resource-list > .resource-group-title:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+.resource-group-sub {
+  font-size: 15px;
+  color: var(--charcoal);
+  margin-bottom: 24px;
+  max-width: 60ch;
+}
 .resource-desc { font-size: 16px; max-width: 58ch; margin-bottom: 20px; }
 .resource-form { display: flex; flex-direction: column; gap: 14px; }
 .form-row {

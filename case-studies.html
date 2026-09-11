@@ -53,8 +53,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header class="site-header">
   <div class="wrap header-inner">
     <a class="wordmark" href="index.html">Faisal Mahmud</a>
-    <div class="header-links">
+    <button class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-menu"><span></span><span></span><span></span></button>
+    <div class="header-links" id="nav-menu">
       <a class="nav-link" href="case-studies.html">Case studies</a>
+      <a class="nav-link" href="services.html">Services</a>
       <a class="nav-link" href="resources.html">Free resources</a>
       <a class="nav-cta" href="https://calendly.com/hello-faisalconsulting/30min">Book a call</a>
     </div>
@@ -72,6 +74,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <section class="cs-list wrap">
 
     <article class="cs-case">
+      <img class="cs-logo" src="logo-mars.svg" alt="Mars logo">
       <h2>Mars</h2>
       <p class="case-meta">Interim Performance Marketing Ops Director, 2021 to 2022</p>
       <div class="cs-block">
@@ -99,6 +102,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </article>
 
     <article class="cs-case">
+      <img class="cs-logo cs-logo--square" src="logo-tata.png" alt="Tata Communications logo">
       <h2>Tata Communications</h2>
       <p class="case-meta">Associate Director, Performance Marketing &amp; Media Planning, 2017 to 2019</p>
       <div class="cs-block">
@@ -126,6 +130,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </article>
 
     <article class="cs-case">
+      <img class="cs-logo cs-logo--square" src="logo-bupa.png" alt="Bupa logo">
       <h2>Bupa Global</h2>
       <p class="case-meta">Lead, Digital Acquisition &amp; Performance Marketing, 2015 to 2016</p>
       <div class="cs-block">
@@ -149,6 +154,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </article>
 
     <article class="cs-case">
+      <img class="cs-logo" src="logo-royalmail.png" alt="Royal Mail logo">
       <h2>Royal Mail</h2>
       <p class="case-meta">Senior Performance &amp; Acquisition Consultant, 2016 to 2017</p>
       <div class="cs-block">
@@ -199,6 +205,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </article>
 
     <article class="cs-case">
+      <img class="cs-logo" src="logo-exseed.svg" alt="ExSeed Health logo">
       <h2>ExSeed Health</h2>
       <p class="case-meta">Board Advisor, Performance Marketing, 2020 to 2021</p>
       <div class="cs-block">
@@ -249,6 +256,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </article>
 
     <article class="cs-case">
+      <img class="cs-logo cs-logo--wide" src="logo-pakotaco.png" alt="Pako Taco logo">
       <h2>Pako Taco</h2>
       <p class="case-meta">Founder &amp; Operator, 2023 to 2025</p>
       <div class="cs-block">
@@ -288,5 +296,39 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <p>Faisal Mahmud — <a href="https://www.linkedin.com/in/performance-marketing-and-digital-strategy/">LinkedIn</a> — <a href="privacy-policy.html">Privacy Policy</a></p>
 </footer>
 
+
+<div id="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie notice" style="display:none">
+  <p>This site uses cookies for analytics (Google Analytics) and advertising measurement (LinkedIn). <a href="privacy-policy.html">Privacy Policy</a>.</p>
+  <button class="cookie-btn cookie-btn--accept" onclick="cookieConsent(true)">Accept</button>
+  <button class="cookie-btn cookie-btn--decline" onclick="cookieConsent(false)">Decline</button>
+</div>
+<script>
+(function() {
+  var consent = localStorage.getItem("cookie_consent");
+  if (!consent) {
+    document.getElementById("cookie-banner").style.display = "flex";
+  }
+})();
+function cookieConsent(accepted) {
+  localStorage.setItem("cookie_consent", accepted ? "accepted" : "declined");
+  document.getElementById("cookie-banner").style.display = "none";
+  if (!accepted) {
+    // disable GA and LinkedIn if declined
+    window["ga-disable-G-X8F5VE40V9"] = true;
+  }
+}
+</script>
+<script>
+(function() {
+  var btn = document.getElementById("nav-toggle");
+  var menu = document.getElementById("nav-menu");
+  if (!btn) return;
+  btn.addEventListener("click", function() {
+    var open = menu.classList.toggle("nav-open");
+    btn.setAttribute("aria-expanded", open);
+    btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  });
+})();
+</script>
 </body>
 </html>

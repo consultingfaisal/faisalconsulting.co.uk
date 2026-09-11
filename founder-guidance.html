@@ -52,6 +52,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header class="lp-header">
   <div class="wrap">
     <a class="wordmark" href="index.html">Faisal Mahmud</a>
+    <a class="nav-link" href="services.html">Services</a>
     <a class="nav-cta" href="https://calendly.com/hello-faisalconsulting/30min">Book a call</a>
   </div>
 </header>
@@ -122,5 +123,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <p>Faisal Mahmud &middot; <a href="privacy-policy.html">Privacy Policy</a></p>
 </footer>
 
+
+<div id="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie notice" style="display:none">
+  <p>This site uses cookies for analytics (Google Analytics) and advertising measurement (LinkedIn). <a href="privacy-policy.html">Privacy Policy</a>.</p>
+  <button class="cookie-btn cookie-btn--accept" onclick="cookieConsent(true)">Accept</button>
+  <button class="cookie-btn cookie-btn--decline" onclick="cookieConsent(false)">Decline</button>
+</div>
+<script>
+(function() {
+  var consent = localStorage.getItem("cookie_consent");
+  if (!consent) {
+    document.getElementById("cookie-banner").style.display = "flex";
+  }
+})();
+function cookieConsent(accepted) {
+  localStorage.setItem("cookie_consent", accepted ? "accepted" : "declined");
+  document.getElementById("cookie-banner").style.display = "none";
+  if (!accepted) {
+    // disable GA and LinkedIn if declined
+    window["ga-disable-G-X8F5VE40V9"] = true;
+  }
+}
+</script>
 </body>
 </html>

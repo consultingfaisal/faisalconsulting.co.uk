@@ -48,8 +48,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header class="site-header">
   <div class="wrap header-inner">
     <a class="wordmark" href="index.html">Faisal Mahmud</a>
-    <div class="header-links">
+    <button class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-menu"><span></span><span></span><span></span></button>
+    <div class="header-links" id="nav-menu">
       <a class="nav-link" href="case-studies.html">Case studies</a>
+      <a class="nav-link" href="services.html">Services</a>
       <a class="nav-link" href="resources.html">Free resources</a>
       <a class="nav-cta" href="https://calendly.com/hello-faisalconsulting/30min">Book a call</a>
     </div>
@@ -68,5 +70,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <footer class="site-footer wrap">
   <p>Faisal Mahmud — <a href="https://www.linkedin.com/in/performance-marketing-and-digital-strategy/">LinkedIn</a> — <a href="privacy-policy.html">Privacy Policy</a></p>
 </footer>
+<script>
+(function() {
+  var btn = document.getElementById("nav-toggle");
+  var menu = document.getElementById("nav-menu");
+  if (!btn) return;
+  btn.addEventListener("click", function() {
+    var open = menu.classList.toggle("nav-open");
+    btn.setAttribute("aria-expanded", open);
+    btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  });
+})();
+</script>
 </body>
 </html>

@@ -796,3 +796,198 @@ a:focus-visible, button:focus-visible {
   .logos-row { gap: 10px; }
   .brand-logo { height: 30px; }
 }
+
+/* ─── Engagement models (contact section) ──────────── */
+.engagement-models {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 40px;
+  margin-bottom: 40px;
+}
+.engagement-item {
+  padding: 20px 0;
+  border-top: 1px solid var(--rule);
+}
+.engagement-label {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.engagement-desc { font-size: 14px; color: var(--charcoal); margin-bottom: 8px; }
+.engagement-rate { font-size: 13px; font-weight: 600; color: var(--accent-deep); }
+
+/* ─── Call explainer (contact section) ─────────────── */
+.call-explainer {
+  background: var(--paper-raised);
+  padding: 28px 32px;
+  margin-bottom: 32px;
+}
+.call-explainer h3 { font-size: 18px; margin-bottom: 16px; }
+.call-steps { list-style: none; padding: 0; }
+.call-steps li { padding: 10px 0 10px 0; border-top: 1px solid var(--rule); font-size: 15px; }
+.call-steps li:first-child { border-top: none; }
+.call-note { font-size: 13px; color: var(--charcoal); margin-top: 12px; font-style: italic; }
+
+/* ─── Services page ─────────────────────────────────── */
+.services-list { padding-bottom: 24px; }
+.service-card {
+  padding: 36px 0;
+  border-top: 1px solid var(--rule);
+}
+.service-header {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.service-card h2 { font-size: 26px; }
+.service-rate { font-size: 14px; color: var(--accent-deep); font-weight: 600; }
+.service-desc { font-size: 16px; max-width: 62ch; margin-bottom: 10px; }
+.service-includes { margin: 14px 0 0 20px; font-size: 15px; }
+.service-includes li { margin-bottom: 6px; color: var(--charcoal); }
+
+/* ─── Call explainer full (services page) ───────────── */
+.call-explainer-full {
+  padding: 48px 24px;
+  border-top: 1px solid var(--rule);
+}
+.call-explainer-full h2 { font-size: 26px; margin-bottom: 32px; }
+.call-steps-full { display: flex; flex-direction: column; gap: 0; }
+.call-step-item {
+  display: flex;
+  gap: 28px;
+  padding: 22px 0;
+  border-top: 1px solid var(--rule);
+  align-items: flex-start;
+}
+.call-step-num {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 28px;
+  color: var(--accent);
+  flex-shrink: 0;
+  width: 44px;
+  margin: 0;
+}
+.call-step-item h3 { font-size: 18px; margin-bottom: 8px; }
+.call-step-item p { font-size: 15px; color: var(--charcoal); margin: 0; }
+
+@media (max-width: 600px) {
+  .engagement-models { grid-template-columns: 1fr; }
+  .service-header { flex-direction: column; gap: 4px; }
+  .call-step-item { flex-direction: column; gap: 10px; }
+}
+
+/* ─── Cookie consent banner ─────────────────────────── */
+#cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--ink);
+  color: #C9C3B4;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  z-index: 9999;
+  font-size: 13px;
+  line-height: 1.5;
+}
+#cookie-banner a { color: #E6B450; }
+#cookie-banner p { margin: 0; flex: 1; min-width: 260px; }
+.cookie-btn {
+  font-family: "Work Sans", Arial, sans-serif;
+  font-size: 13px;
+  padding: 8px 18px;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+}
+.cookie-btn--accept { background: #E6B450; color: var(--ink); font-weight: 600; }
+.cookie-btn--decline { background: transparent; color: #C9C3B4; border: 1px solid #C9C3B4; }
+.cookie-btn--accept:hover { background: #d4a43e; }
+.cookie-btn--decline:hover { color: #EDEAE1; border-color: #EDEAE1; }
+
+/* ─── Mobile hamburger nav ───────────────────────────── */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+}
+.nav-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--ink);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+@media (max-width: 600px) {
+  .nav-toggle { display: flex; }
+  .header-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--paper);
+    border-top: 1px solid var(--rule);
+    border-bottom: 2px solid var(--rule);
+    padding: 16px 24px 20px;
+    flex-direction: column;
+    gap: 14px;
+    align-items: flex-start;
+    z-index: 99;
+  }
+  .header-links.nav-open { display: flex; }
+  .nav-link { font-size: 16px; margin-right: 0; }
+  .nav-cta { margin-top: 4px; }
+  /* header needs position relative for the dropdown */
+  .site-header { position: sticky; }
+  .header-inner { position: relative; }
+}
+
+/* ─── Real brand logos — homepage strip ─────────── */
+.brand-logo {
+  height: 40px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  opacity: 0.75;
+  transition: opacity 0.15s ease;
+}
+.brand-logo--square {
+  height: 40px;
+  width: 40px;
+  border-radius: 6px;
+}
+.brand-logo[src="logo-royalmail.png"] { height: 72px; }
+.brand-logo:hover { opacity: 1; }
+
+/* ─── Case study logos ───────────────────────────── */
+.cs-logo {
+  height: 36px;
+  width: auto;
+  max-width: 140px;
+  object-fit: contain;
+  display: block;
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+.cs-logo--square {
+  height: 36px;
+  width: 36px;
+  border-radius: 4px;
+}
+.cs-logo--wide {
+  height: 28px;
+  max-width: 200px;
+}
+.cs-logo[src="logo-royalmail.png"] { height: 60px; }

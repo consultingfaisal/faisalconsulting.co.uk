@@ -48,6 +48,24 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 10000;
+  padding: 10px 14px;
+  background: var(--ink);
+  color: #FFFFFF;
+  transform: translateY(-160%);
+}
+
+.skip-link:focus { transform: translateY(0); }
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
 h1, h2, h3 {
   font-family: "Fraunces", Georgia, "Times New Roman", serif;
   color: var(--ink);
@@ -301,10 +319,40 @@ a:focus-visible, button:focus-visible {
 .back-link a:hover { color: var(--accent-deep); border-color: var(--accent); }
 .cs-hero { padding-bottom: 32px; }
 
+.case-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.case-jump a {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper-raised);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+}
+
+.case-jump a:hover {
+  border-color: var(--accent);
+  color: var(--accent-deep);
+}
+
 .cs-list { padding-bottom: 24px; }
 .cs-case {
   padding: 40px 0;
   border-top: 1px solid var(--rule);
+  scroll-margin-top: 96px;
 }
 .cs-case:first-of-type { border-top: 1px solid var(--rule); }
 .cs-case h2 { font-size: 26px; margin-bottom: 4px; }
@@ -346,6 +394,14 @@ a:focus-visible, button:focus-visible {
   color: #EDEAE1;
   margin: 0 0 10px;
   line-height: 1;
+}
+.stat-break-kicker {
+  margin: 0 0 12px;
+  color: #D97848;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 .stat-break-label {
   font-family: "Work Sans", Arial, Helvetica, sans-serif;
@@ -840,6 +896,7 @@ a:focus-visible, button:focus-visible {
   font-size: 13px;
   line-height: 1.5;
 }
+#cookie-banner[hidden] { display: none !important; }
 #cookie-banner a { color: #D97848; }
 #cookie-banner p { margin: 0; flex: 1; min-width: 260px; }
 .cookie-btn {
@@ -854,6 +911,21 @@ a:focus-visible, button:focus-visible {
 .cookie-btn--decline { background: transparent; color: #C9C3B4; border: 1px solid #C9C3B4; }
 .cookie-btn--accept:hover { background: #9D4518; }
 .cookie-btn--decline:hover { color: #EDEAE1; border-color: #EDEAE1; }
+.cookie-settings-link {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.cookie-settings-link:hover { color: var(--accent-deep); border-color: var(--accent); }
+
+.nav-link[aria-current="page"] {
+  color: var(--accent-deep);
+  border-bottom-color: var(--accent);
+}
 
 /* ─── Mobile hamburger nav ───────────────────────────── */
 .nav-toggle {

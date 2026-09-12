@@ -54,7 +54,7 @@
   --accent: #E6B450;
   --accent-deep: #855F13;
   --rule: #C9C3B4;
-  --max: 720px;
+  --max: 900px;
 }
 
 * { box-sizing: border-box; }
@@ -203,6 +203,7 @@ a:focus-visible, button:focus-visible {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
+  max-width: none;
 }
 .stat-num {
   font-family: "Fraunces", Georgia, "Times New Roman", serif;
@@ -390,33 +391,16 @@ a:focus-visible, button:focus-visible {
 /* Ideal Engagements */
 .ideal { padding: 56px 24px; border-top: 1px solid var(--rule); }
 .ideal h2 { font-size: 26px; margin-bottom: 32px; }
-.ideal-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px 40px;
-}
-.ideal-item h3 {
-  font-size: 18px;
-  font-weight: 500;
-  margin-bottom: 8px;
-}
-.ideal-item p {
-  font-size: 15px;
-  color: var(--charcoal);
-  margin-bottom: 12px;
-}
 .ideal-cta {
   font-size: 14px;
   text-decoration: none;
   color: var(--accent-deep);
   border-bottom: 1px solid var(--accent);
   padding-bottom: 1px;
+  display: inline-block;
+  margin-top: 8px;
 }
 .ideal-cta:hover { color: var(--ink); border-color: var(--ink); }
-
-@media (max-width: 600px) {
-  .ideal-list { grid-template-columns: 1fr; }
-}
 
 /* Resources page */
 .resource-list { padding-bottom: 24px; }

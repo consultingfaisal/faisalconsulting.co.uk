@@ -991,3 +991,59 @@ a:focus-visible, button:focus-visible {
   max-width: 200px;
 }
 .cs-logo[src="logo-royalmail.png"] { height: 60px; }
+
+/* ─── Tabler icons CDN ───────────────────────────────────── */
+@import url("https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css");
+
+/* ─── Stats strip: stat-co attribution line ─────────────── */
+.stat-co { font-size: 12px; color: var(--accent-deep, #855F13); margin: 2px 0 0; }
+
+/* ─── How I work: work icons ────────────────────────────── */
+.work-icon { display: block; font-size: 24px; color: var(--accent-deep, #855F13); margin-bottom: 10px; }
+
+/* ─── Testimonials on homepage ──────────────────────────── */
+.testimonials { padding: 44px 24px; border-top: 1px solid var(--rule); }
+.testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.home-testimonial { margin: 0; padding: 0 0 0 18px; border-left: 3px solid var(--accent); }
+.home-testimonial p { font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 15px; color: var(--ink); line-height: 1.55; margin: 0 0 8px; }
+.home-testimonial cite { font-style: normal; font-size: 12px; color: var(--charcoal); }
+
+/* ─── When to bring me in: ideal-card ──────────────────── */
+.ideal-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.ideal-card { padding: 20px; border: 1px solid var(--rule); border-left: 3px solid var(--accent); background: var(--paper-raised); }
+.ideal-icon { display: block; font-size: 22px; color: var(--accent-deep, #855F13); margin-bottom: 10px; }
+.ideal-card h3 { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+.ideal-card p { font-size: 14px; color: var(--charcoal); margin-bottom: 12px; }
+
+/* ─── Services menu layout ──────────────────────────────── */
+.svc-menu { border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+.svc-row { display: flex; gap: 20px; align-items: flex-start; padding: 24px; background: var(--paper-raised); border-top: 1px solid var(--rule); }
+.svc-row:first-child { border-top: none; }
+.svc-icon-wrap { flex-shrink: 0; width: 44px; height: 44px; border-radius: 8px; background: var(--ink); display: flex; align-items: center; justify-content: center; }
+.svc-icon-wrap .ti { font-size: 22px; color: var(--accent); }
+.svc-body { flex: 1; min-width: 0; }
+.svc-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
+.svc-head h2 { font-size: 20px; }
+.svc-rate { font-size: 13px; color: var(--accent-deep, #855F13); font-weight: 600; }
+.svc-desc { font-size: 15px; color: var(--charcoal); margin-bottom: 12px; }
+.svc-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.svc-chip { font-size: 12px; padding: 4px 10px; border-radius: 20px; background: var(--paper); border: 1px solid var(--rule); color: var(--charcoal); }
+
+/* ─── About link ────────────────────────────────────────── */
+.about-link { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; color: var(--accent-deep, #855F13); text-decoration: none; border-bottom: 1px solid var(--accent-deep, #855F13); padding-bottom: 1px; }
+.about-link:hover { color: var(--ink); border-color: var(--ink); }
+
+/* ─── Cookie banner: fix mobile height issue ────────────── */
+#cookie-banner { bottom: 0 !important; top: auto !important; }
+
+/* ─── Mobile responsive fixes ───────────────────────────── */
+@media (max-width: 600px) {
+  .testimonials-grid { grid-template-columns: 1fr; gap: 18px; }
+  .ideal-list { grid-template-columns: 1fr 1fr; }
+  .svc-row { flex-direction: column; gap: 14px; }
+  .svc-icon-wrap { width: 38px; height: 38px; }
+  .svc-head { flex-direction: column; gap: 2px; }
+}
+@media (max-width: 400px) {
+  .ideal-list { grid-template-columns: 1fr; }
+}

@@ -991,10 +991,6 @@ a:focus-visible, button:focus-visible {
   max-width: 200px;
 }
 .cs-logo[src="logo-royalmail.png"] { height: 60px; }
-
-/* ─── Tabler icons CDN ───────────────────────────────────── */
-@import url("https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css");
-
 /* ─── Stats strip: stat-co attribution line ─────────────── */
 .stat-co { font-size: 12px; color: var(--accent-deep, #855F13); margin: 2px 0 0; }
 

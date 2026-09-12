@@ -159,58 +159,6 @@
     });
   }
 
-  function prepareResourceForms() {
-    document.querySelectorAll("form.resource-form").forEach(function (form) {
-      form.addEventListener("submit", function (event) {
-        event.preventDefault();
-
-        var nextField = form.querySelector("input[name='_next']");
-        var nextUrl = nextField ? nextField.value : null;
-        var submitBtn = form.querySelector("button[type='submit']");
-        var originalLabel = submitBtn ? submitBtn.textContent : "";
-        var errorEl = form.querySelector(".form-error");
-
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.textContent = "Sending...";
-        }
-        if (errorEl) errorEl.hidden = true;
-
-        var actionUrl = form.getAttribute("action");
-        var ajaxUrl = actionUrl.replace("formsubmit.co/", "formsubmit.co/ajax/");
-        var formData = new FormData(form);
-
-        fetch(ajaxUrl, {
-          method: "POST",
-          body: formData,
-          headers: { "Accept": "application/json" }
-        })
-          .then(function (response) {
-            if (!response.ok) throw new Error("Request failed");
-            return response.json();
-          })
-          .then(function () {
-            if (nextUrl) {
-              window.location.href = nextUrl;
-            } else if (submitBtn) {
-              submitBtn.textContent = "Sent";
-            }
-          })
-          .catch(function () {
-            if (submitBtn) {
-              submitBtn.disabled = false;
-              submitBtn.textContent = originalLabel;
-            }
-            if (errorEl) {
-              errorEl.hidden = false;
-            } else {
-              window.alert("Something went wrong sending your details. Please try again, or email hello@faisalconsulting.co.uk directly.");
-            }
-          });
-      });
-    });
-  }
-
   function prepareReveals() {
     var items = document.querySelectorAll("[data-reveal]");
     if (!items.length) return;
@@ -260,7 +208,6 @@
   document.addEventListener("DOMContentLoaded", function () {
     prepareNavigation();
     prepareForms();
-    prepareResourceForms();
     prepareReveals();
     prepareConsentControls();
   });

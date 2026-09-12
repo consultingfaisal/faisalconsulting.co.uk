@@ -1910,3 +1910,15 @@ a:focus-visible, button:focus-visible {
     transform: none;
   }
 }
+
+/* ─── Direct download fallback (temporary, while form issue is diagnosed) ─── */
+.direct-download {
+  font-size: 13px;
+  color: var(--charcoal);
+  margin: 4px 0 0;
+}
+.direct-download a {
+  color: var(--accent-deep);
+  font-weight: 600;
+  text-decoration: underline;
+}

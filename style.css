@@ -507,6 +507,16 @@ a:focus-visible, button:focus-visible {
 .form-consent input[type="checkbox"] { margin-top: 2px; }
 .form-privacy-note { margin-top: 8px; font-size: 12px; color: var(--charcoal); }
 .form-privacy-note a { color: var(--accent-deep); }
+.form-error {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: #FBEAEA;
+  border-left: 3px solid #B3261E;
+  color: #7A1E17;
+  font-size: 13px;
+}
+.form-error a { color: #7A1E17; text-decoration: underline; }
+.form-error[hidden] { display: none; }
 
 @media (max-width: 600px) {
   .form-row { flex-direction: column; align-items: stretch; }

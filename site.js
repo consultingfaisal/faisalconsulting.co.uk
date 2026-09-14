@@ -145,6 +145,31 @@
     });
   }
 
+  function prepareToggles() {
+    document.querySelectorAll("[data-toggle]").forEach(function (btn) {
+      var targetId = btn.getAttribute("data-toggle");
+      var target = document.getElementById(targetId);
+      if (!target) return;
+      btn.addEventListener("click", function () {
+        var open = btn.getAttribute("aria-expanded") === "true";
+        btn.setAttribute("aria-expanded", String(!open));
+        target.hidden = open;
+        if (!open) {
+          var label = btn.querySelector("span");
+          if (label && label.textContent.indexOf("Show") === 0) {
+            label.dataset.originalText = label.dataset.originalText || label.textContent;
+            label.textContent = label.textContent.replace("Show", "Hide");
+          }
+        } else {
+          var label2 = btn.querySelector("span");
+          if (label2 && label2.dataset.originalText) {
+            label2.textContent = label2.dataset.originalText;
+          }
+        }
+      });
+    });
+  }
+
   function prepareForms() {
     document.querySelectorAll("input[type='text'], input[type='email']").forEach(function (input) {
       if (input.name === "_honey") {
@@ -208,6 +233,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     prepareNavigation();
     prepareForms();
+    prepareToggles();
     prepareReveals();
     prepareConsentControls();
   });

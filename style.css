@@ -1911,14 +1911,78 @@ a:focus-visible, button:focus-visible {
   }
 }
 
-/* ─── Direct download fallback (temporary, while form issue is diagnosed) ─── */
-.direct-download {
+/* ─── Specialisms grid (services page) ──────────────── */
+.specialisms { padding: 56px 24px; border-top: 1px solid var(--rule); }
+.specialisms-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 28px;
+}
+.specialism-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 calc(25% - 11px);
+  min-width: 220px;
+  padding: 20px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper-raised);
+  text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.specialism-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.specialism-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--accent-deep);
+}
+.specialism-name {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 16px;
+  color: var(--ink);
+}
+.specialism-desc {
   font-size: 13px;
   color: var(--charcoal);
-  margin: 4px 0 0;
+  line-height: 1.4;
 }
-.direct-download a {
+
+@media (max-width: 900px) {
+  .specialism-card { flex: 1 1 calc(50% - 7px); }
+}
+@media (max-width: 560px) {
+  .specialism-card { flex: 1 1 100%; }
+}
+
+/* ─── Who I Help (homepage) ─────────────────────────── */
+.home-who-help { padding: 64px 24px; border-top: 1px solid var(--rule); }
+.specialisms-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px auto 0;
+  padding: 10px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: "Work Sans", Arial, sans-serif;
+  font-size: 14px;
   color: var(--accent-deep);
   font-weight: 600;
-  text-decoration: underline;
 }
+.specialisms-toggle-chevron {
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid var(--accent-deep);
+  border-bottom: 2px solid var(--accent-deep);
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+.specialisms-toggle[aria-expanded="true"] .specialisms-toggle-chevron { transform: rotate(-135deg); }
+.specialisms-grid--more { margin-top: 14px; }
+.specialisms-grid--more[hidden] { display: none; }

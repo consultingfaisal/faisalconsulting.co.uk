@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Senior fractional and interim marketing leadership for businesses facing wasted spend, broken tracking or a leadership gap. Based in Alicante and working across the UK and Europe.">
-<title>Faisal Mahmud | Fractional Marketing Director</title>
+<meta name="description" content="Fractional Marketing Director helping UK and European businesses fix wasted spend, broken tracking and unclear accountability. Senior support from Faisal Mahmud.">
+<title>Fractional Marketing Director UK &amp; Europe | Faisal Mahmud</title>
 <link rel="canonical" href="https://faisalconsulting.co.uk/">
 <link rel="preload" href="fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="work-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
 <script>document.documentElement.classList.add('js');</script>
-<link rel="stylesheet" href="style.css?v=20260912-3">
+<link rel="stylesheet" href="style.css?v=20260915-1">
 
-<meta property="og:title" content="Faisal Mahmud | Fractional Marketing Director">
+<meta property="og:title" content="Fractional Marketing Director UK &amp; Europe | Faisal Mahmud">
 <meta property="og:description" content="When marketing performance stops adding up, I find out why. Senior fractional and interim marketing leadership across the UK and Europe.">
 <meta property="og:image" content="https://faisalconsulting.co.uk/social-preview.jpg">
 <meta property="og:image:width" content="1200">
@@ -22,20 +22,34 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "ProfessionalService",
-  "name": "Faisal Consulting",
-  "url": "https://faisalconsulting.co.uk",
-  "logo": "https://faisalconsulting.co.uk/headshot.png",
-  "description": "Fractional and interim marketing leadership for FMCG, telecoms, healthcare, SaaS and hospitality brands.",
-  "founder": {
-    "@type": "Person",
-    "name": "Faisal Mahmud",
-    "jobTitle": "Fractional Marketing Director",
-    "url": "https://faisalconsulting.co.uk",
-    "sameAs": "https://www.linkedin.com/in/performance-marketing-and-digital-strategy/"
-  },
-  "areaServed": ["GB", "EU"],
-  "serviceType": ["Fractional Marketing Director", "Interim Marketing Director", "Performance Marketing Consultant"]
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://faisalconsulting.co.uk/#website",
+      "name": "Faisal Consulting",
+      "url": "https://faisalconsulting.co.uk/"
+    },
+    {
+      "@type": "ProfessionalService",
+      "@id": "https://faisalconsulting.co.uk/#business",
+      "name": "Faisal Consulting",
+      "url": "https://faisalconsulting.co.uk/",
+      "image": "https://faisalconsulting.co.uk/headshot.png",
+      "description": "Fractional and interim marketing leadership for businesses across the UK and Europe.",
+      "founder": {"@id": "https://faisalconsulting.co.uk/#faisal-mahmud"},
+      "areaServed": ["United Kingdom", "Europe"],
+      "serviceType": ["Fractional Marketing Director", "Interim Marketing Director", "Marketing Performance Audit"]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://faisalconsulting.co.uk/#faisal-mahmud",
+      "name": "Faisal Mahmud",
+      "jobTitle": "Fractional Marketing Director",
+      "url": "https://faisalconsulting.co.uk/",
+      "image": "https://faisalconsulting.co.uk/headshot.png",
+      "sameAs": ["https://www.linkedin.com/in/performance-marketing-and-digital-strategy/"]
+    }
+  ]
 }
 </script>
 
@@ -72,7 +86,10 @@
     </div>
     <figure class="home-portrait-light" data-reveal style="--reveal-delay: 100ms">
       <span class="home-portrait-outline" aria-hidden="true"></span>
-      <img src="headshot.png" alt="Faisal Mahmud, Fractional Marketing Director" width="540" height="539">
+      <picture>
+        <source srcset="headshot.webp" type="image/webp">
+        <img src="headshot.png" alt="Faisal Mahmud, Fractional Marketing Director" width="540" height="539" fetchpriority="high" decoding="async">
+      </picture>
     </figure>
   </section>
 
@@ -317,6 +334,6 @@
   <button type="button" class="cookie-btn cookie-btn--accept" data-consent="accept">Accept</button>
   <button type="button" class="cookie-btn cookie-btn--decline" data-consent="decline">Decline</button>
 </div>
-<script src="site.js?v=20260912-1"></script>
+<script src="site.js?v=20260915-1"></script>
 </body>
 </html>

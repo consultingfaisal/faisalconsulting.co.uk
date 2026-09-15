@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /thank-you-
 
 Sitemap: https://faisalconsulting.co.uk/sitemap.xml

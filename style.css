@@ -2090,3 +2090,21 @@ a:focus-visible, button:focus-visible {
 .blog-post ul { margin: 0 0 16px 20px; }
 .blog-post li { font-size: 16px; line-height: 1.6; color: var(--charcoal); margin-bottom: 8px; }
 .blog-post a { color: var(--accent-deep); }
+
+/* ─── Blog: teardown section + gated download box ───── */
+.blog-section-title { font-size: 20px; margin-bottom: 6px; }
+.blog-section-title--second { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--rule); }
+.blog-section-sub { font-size: 14px; color: var(--charcoal); margin-bottom: 20px; }
+
+.teardown-gate {
+  margin: 32px 0;
+  padding: 28px;
+  background: var(--paper-raised);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+}
+.teardown-gate h2 { font-size: 20px; margin-bottom: 8px; }
+.teardown-gate > p { font-size: 14px; color: var(--charcoal); margin-bottom: 18px; }
+.teardown-gate .resource-form { max-width: 100%; }
+
+.blog-post-note { font-size: 13px; color: var(--charcoal); font-style: italic; margin-top: 32px; }

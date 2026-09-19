@@ -170,6 +170,25 @@
     });
   }
 
+  function prepareReferralCapture() {
+    var params = new URLSearchParams(window.location.search);
+    var source = params.get("utm_source") || params.get("ref") || "";
+    var medium = params.get("utm_medium") || "";
+    var campaign = params.get("utm_campaign") || "";
+    var referrer = document.referrer || "";
+
+    var parts = [];
+    if (source) parts.push("source=" + source);
+    if (medium) parts.push("medium=" + medium);
+    if (campaign) parts.push("campaign=" + campaign);
+    if (!source && referrer) parts.push("referrer=" + referrer);
+    var summary = parts.length ? parts.join(", ") : "direct/unknown";
+
+    document.querySelectorAll('input[name="Referral Source"]').forEach(function (field) {
+      field.value = summary;
+    });
+  }
+
   function prepareForms() {
     document.querySelectorAll("input[type='text'], input[type='email']").forEach(function (input) {
       if (input.name === "_honey") {
@@ -233,6 +252,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     prepareNavigation();
     prepareForms();
+    prepareReferralCapture();
     prepareToggles();
     prepareReveals();
     prepareConsentControls();

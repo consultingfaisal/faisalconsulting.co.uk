@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="200" viewBox="0 0 1200 200" role="img" aria-labelledby="title desc">
+  <title id="title">Faisal Consulting</title>
+  <desc id="desc">A light horizontal Faisal Consulting logo designed for the website header.</desc>
+  <style>
+    @font-face { font-family: "Fraunces"; src: url("fraunces-latin.woff2") format("woff2"); font-weight: 400 700; }
+  </style>
+  <g transform="translate(20 15)">
+    <path fill="#16233B" d="M18 15H112V42H52V69H98V96H52V122L18 156Z"/>
+    <path fill="#B5511D" d="M83 120L106 97V150H83Z"/>
+    <path fill="#B5511D" d="M116 91L139 68V150H116Z"/>
+    <path fill="#B5511D" d="M149 62L172 39V150H149Z"/>
+  </g>
+  <text x="230" y="126" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-size="82" font-weight="600" fill="#16233B">Faisal Consulting</text>
+</svg>

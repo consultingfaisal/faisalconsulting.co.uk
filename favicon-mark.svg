@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="210" height="175" viewBox="0 0 210 175" role="img" aria-labelledby="title desc">
+  <title id="title">Faisal Consulting FM mark</title>
+  <desc id="desc">A light F and rising bar chart monogram that subtly suggests the initials FM.</desc>
+  <path fill="#16233B" d="M18 15H112V42H52V69H98V96H52V122L18 156Z"/>
+  <path fill="#B5511D" d="M83 120L106 97V150H83Z"/>
+  <path fill="#B5511D" d="M116 91L139 68V150H116Z"/>
+  <path fill="#B5511D" d="M149 62L172 39V150H149Z"/>
+</svg>

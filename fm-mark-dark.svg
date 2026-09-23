@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-labelledby="title desc">
+  <title id="title">Faisal Consulting mark</title>
+  <desc id="desc">Reversed FM mark for dark navy backgrounds.</desc>
+  <g transform="translate(10 18)">
+    <path fill="#EDEAE1" d="M18 15H112V42H52V69H98V96H52V122L18 156Z"/>
+    <path fill="#E6B450" d="M83 120L106 97V150H83Z"/>
+    <path fill="#E6B450" d="M116 91L139 68V150H116Z"/>
+    <path fill="#E6B450" d="M149 62L172 39V150H149Z"/>
+  </g>
+</svg>

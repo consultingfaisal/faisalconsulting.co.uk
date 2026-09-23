@@ -123,12 +123,15 @@ a:focus-visible, button:focus-visible {
   color: var(--ink);
   white-space: nowrap;
 }
+.wordmark--logo { display: flex; align-items: center; }
+.wordmark-img { height: 30px; width: auto; display: block; }
 .header-links {
   display: flex;
   align-items: center;
   gap: 28px;
 }
-.header-links a { white-space: nowrap; }
+.header-links a { white-space: nowrap; margin-right: 28px; }
+.header-links a:last-child { margin-right: 0; }
 .nav-link {
   font-size: 15px;
   text-decoration: none;
@@ -301,6 +304,7 @@ a:focus-visible, button:focus-visible {
 @media (max-width: 600px) {
   .site-header { padding: 16px 0; }
   .wordmark { font-size: 16px; }
+  .wordmark-img { height: 24px; }
   .header-links { gap: 12px; }
   .nav-link { font-size: 13px; margin-right: 12px; }
   .nav-cta { font-size: 13px; padding: 8px 12px; }
@@ -1868,6 +1872,7 @@ a:focus-visible, button:focus-visible {
   .wrap { padding-right: 20px; padding-left: 20px; }
   .site-header { padding: 15px 0; }
   .wordmark { font-size: 18px; }
+  .wordmark-img { height: 26px; }
   .header-links { top: calc(100% + 15px); right: -20px; left: -20px; padding-right: 20px; padding-left: 20px; }
   .home-hero {
     position: relative;

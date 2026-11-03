@@ -313,6 +313,100 @@
     if (!savedConsent()) showBanner();
   }
 
+  var calendlyAssetsLoading = false;
+  var calendlyAssetsReady = false;
+  var calendlyAssetWaiters = [];
+
+  function whenCalendlyReady(callback) {
+    if (calendlyAssetsReady && window.Calendly && window.Calendly.initPopupWidget) {
+      callback();
+      return;
+    }
+    calendlyAssetWaiters.push(callback);
+    if (calendlyAssetsLoading) return;
+    calendlyAssetsLoading = true;
+
+    if (!document.getElementById("fc-calendly-css")) {
+      var link = document.createElement("link");
+      link.id = "fc-calendly-css";
+      link.rel = "stylesheet";
+      link.href = "https://assets.calendly.com/assets/external/widget.css";
+      document.head.appendChild(link);
+    }
+
+    function finish() {
+      calendlyAssetsReady = true;
+      var waiters = calendlyAssetWaiters.slice();
+      calendlyAssetWaiters = [];
+      waiters.forEach(function (fn) { fn(); });
+    }
+
+    var existing = document.getElementById("fc-calendly-js");
+    if (existing) {
+      if (window.Calendly && window.Calendly.initPopupWidget) {
+        finish();
+      } else {
+        existing.addEventListener("load", finish);
+      }
+      return;
+    }
+
+    var script = document.createElement("script");
+    script.id = "fc-calendly-js";
+    script.src = "https://assets.calendly.com/assets/external/widget.js";
+    script.async = true;
+    script.onload = finish;
+    script.onerror = function () {
+      calendlyAssetsLoading = false;
+      calendlyAssetWaiters = [];
+    };
+    document.head.appendChild(script);
+  }
+
+  function calendlyEventName(data) {
+    if (!data) return "";
+    if (typeof data === "string") {
+      try {
+        data = JSON.parse(data);
+      } catch (error) {
+        return "";
+      }
+    }
+    return data.event || "";
+  }
+
+  function prepareCalendlyEmbed() {
+    // Confirmed bookings only: push dataLayer for GTM. Do not call gtag here
+    // (Ads/GA4 would double-count once GTM forwards calendly_booked).
+    window.addEventListener("message", function (event) {
+      if (event.origin !== "https://calendly.com") return;
+      if (calendlyEventName(event.data) !== "calendly.event_scheduled") return;
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event: "calendly_booked" });
+    });
+
+    document.addEventListener("click", function (event) {
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      var link = event.target.closest
+        ? event.target.closest('a[href*="calendly.com/hello-faisalconsulting"]')
+        : null;
+      if (!link) return;
+
+      var url = link.href;
+      if (!url) return;
+
+      event.preventDefault();
+      whenCalendlyReady(function () {
+        if (window.Calendly && window.Calendly.initPopupWidget) {
+          window.Calendly.initPopupWidget({ url: url });
+          return;
+        }
+        window.location.assign(url);
+      });
+    });
+  }
+
   if (savedConsent() === "accepted") loadTracking();
 
   document.addEventListener("DOMContentLoaded", function () {
@@ -323,5 +417,6 @@
     prepareToggles();
     prepareReveals();
     prepareConsentControls();
+    prepareCalendlyEmbed();
   });
 })();

@@ -2333,3 +2333,24 @@ h3 { font-weight: 700; letter-spacing: -0.01em; }
 .lp-header { background: var(--forest); border-bottom: 1px solid var(--rule-on-forest); box-shadow: none; }
 .lp-header .wordmark { color: #FFFFFF; }
 .lp-header .nav-link { color: var(--on-forest-muted); }
+
+/* ---------- v2 legibility pass: readable sizes site-wide ---------- */
+body { font-size: 17px; }
+.back-link, .back-link a { font-size: 15px; }
+.svc-desc, .service-desc, .engagement-desc, .timeline-item p, .who-for-col li, .faq-item p, .call-note, .svc-also-known,
+.ideal-card p, .res-card-desc, .resource-desc, .call-step-item p, .home-call-steps p, .cs-block p, .policy-section p, .policy-list li,
+.lp-check-item, .lp-diagnostic-step span:last-child, .blog-card p, .service-includes li, .specialism-desc, .comparison-table th, .comparison-table td {
+  font-size: 16px; line-height: 1.6;
+}
+.comparison-table td, .comparison-table th { padding-top: 12px; padding-bottom: 12px; }
+.svc-rate, .service-rate, .engagement-rate { font-family: "IBM Plex Sans", Arial, sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 0; color: var(--accent-deep); }
+.svc-chip { font-family: "IBM Plex Sans", Arial, sans-serif; font-size: 14px; font-weight: 500; padding: 5px 10px; background: var(--card); color: var(--text); border: 1px solid var(--rule); }
+.home-section-heading > p, .v2-head p { font-size: 14px; }
+.timeline-month, .home-card-number, .home-step-number, .call-step-num, .lp-diagnostic-no, .blog-card-date, .stat-break-kicker,
+.experience-label, .home-eyebrow, .resource-group-title, .engagement-label, .v2-label, .v2-num { font-size: max(13px, 1em * 0.8); font-weight: 500; }
+.site-footer { font-size: 15px; }
+.svc-head h2, .service-card h2 { font-size: 24px; }
+.v2-ledger th { font-size: 13px; }
+.v2-portrait figcaption, .v2-model .v2-meta, .v2-quote figcaption, .v2-head p { font-size: 14px; }
+.v2-hero-note { font-size: 15px; }
+.v2-model-facts { font-size: 15px; }

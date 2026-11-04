@@ -63,7 +63,7 @@ You do this yourself. The key stays in GitHub's secret store. It is not written 
 4. Name it exactly `GEMINI_API_KEY`.
 5. Paste the key and save.
 
-The next draft then asks Gemini to write the body. The instructions to the model are: UK English, short sentences, no hype, and no invented figures, clients, quotes or results. Anything that needs a real number is written as `[FAISAL TO ADD]`.
+The next draft then asks Gemini to write the body. The instructions to the model are: UK English, short sentences, no hype, and no invented figures, clients, quotes or results. Anything that needs a real number is written as `[FAISAL TO ADD]`. If the title promises a number, such as seven checks, the draft must have that many sections, and it has to be long enough to be useful (about 900 to 1,400 words). A draft that misses that is sent back once. If it still misses, the run goes red and no pull request is opened.
 
 If Gemini is busy, the run retries each model, with pauses, for about 10 minutes. If every try fails, the run goes red and does not open a pull request. The row stays `queued`, so the next Tuesday or Thursday run tries again.
 

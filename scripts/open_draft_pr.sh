@@ -28,6 +28,23 @@ if [[ ! -s "$BODYFILE" ]]; then
   exit 1
 fi
 
+# Stop before any commit or push if this calendar row already has an open draft.
+# A closed pull request does not count: the row is still queued and can be drafted again.
+open_for_row="$(gh pr list --state open --limit 100 --json number,title,body,headRefName | jq -r \
+  --arg topic "$TOPIC" \
+  --arg date "$DATE" \
+  --arg prefix "content-draft/${DATE}-${SLUG}" \
+  '.[] | select(
+      (.headRefName | startswith($prefix))
+      or (.title == ("Draft: " + $topic))
+      or (((.body // "") | contains("Calendar date: " + $date)) and ((.body // "") | contains("Topic: " + $topic)))
+    ) | "#\(.number) \(.title)"')"
+if [[ -n "$open_for_row" ]]; then
+  echo "A draft pull request is already open for this calendar row. No second pull request was created:"
+  echo "$open_for_row"
+  exit 0
+fi
+
 branch="content-draft/${DATE}-${SLUG}"
 if git ls-remote --heads origin "$branch" | grep -q .; then
   branch="${branch}-${GITHUB_RUN_ID:-manual}"

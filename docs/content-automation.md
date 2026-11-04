@@ -40,7 +40,7 @@ These are normal pull requests. The word Draft is only in the title, so the Merg
 
 The new card is added at the top of the Insights list, not in the Outside In teardowns. The breadcrumb is Home, then Insights, then the title, same as the other posts.
 
-Only one draft is opened at a time. If a draft pull request is still open, the Tuesday or Thursday run waits. Merge it or close it, and the next run picks up the calendar.
+Only one draft is opened at a time. If a draft pull request is still open, the Tuesday or Thursday run waits. It checks again just before opening a pull request, so the same calendar row cannot end up with two open drafts. Merge or close the open one, and the next run picks up the calendar.
 
 When you merge, that same pull request marks the calendar row as `drafted` and adds the pull request link. You do not need to edit the status yourself.
 
@@ -51,7 +51,7 @@ When you merge, that same pull request marks the calendar row as `drafted` and a
 3. Choose **Site health check** or **Draft blog post**.
 4. Open **Run workflow**, leave the branch as main, and run it.
 
-A health run opens one issue labelled `site-health` and closes the previous one, so they do not pile up. A draft run opens a pull request, or does nothing if a draft is already open or no row is `queued`. A red run means the action itself failed. Open the run and read the log.
+A health run opens one issue labelled `site-health` and closes the previous one, so they do not pile up. A draft run opens a pull request, or does nothing if a draft is already open or no row is `queued`. A red draft run means Gemini did not return a draft, or the action itself failed. The calendar row is still `queued`. Open the run and read the log.
 
 ## Add the Gemini key
 
@@ -65,7 +65,9 @@ You do this yourself. The key stays in GitHub's secret store. It is not written 
 
 The next draft then asks Gemini to write the body. The instructions to the model are: UK English, short sentences, no hype, and no invented figures, clients, quotes or results. Anything that needs a real number is written as `[FAISAL TO ADD]`.
 
-If the secret is not set, or Gemini does not answer, you still get a pull request. The page has the usual layout and headings from the topic, and `[FAISAL TO ADD]` where the paragraphs go.
+If Gemini is busy, the run retries each model, with pauses, for about 10 minutes. If every try fails, the run goes red and does not open a pull request. The row stays `queued`, so the next Tuesday or Thursday run tries again.
+
+If the secret is not set, you still get a pull request. The page has the usual layout and headings from the topic, and `[FAISAL TO ADD]` where the paragraphs go.
 
 ## If a run cannot open a pull request
 

@@ -7,7 +7,9 @@ is opened by the GitHub Action. The post goes live only when that request
 is merged.
 
 If GEMINI_API_KEY is set, the body is written with Google's Gemini API.
-Otherwise the page is a structure with [FAISAL TO ADD] placeholders.
+Busy or rate-limited models are retried. If every try fails, the run stops
+and the calendar row stays queued. No placeholder pull request is opened.
+If the key is not set, the page is a structure with [FAISAL TO ADD] placeholders.
 """
 
 from __future__ import annotations
@@ -22,6 +24,7 @@ import re
 import shutil
 import sys
 import tempfile
+import time
 import unicodedata
 import urllib.error
 import urllib.request
@@ -36,6 +39,9 @@ CALENDAR_NAME = Path("content") / "calendar.csv"
 EXPECTED_COLUMNS = ["date", "topic", "target_query", "status", "notes"]
 INSIGHTS_MARKER = '<h2 class="blog-section-title blog-section-title--second">Insights</h2>'
 MODELS = ("gemini-3.8-flash", "gemini-flash-latest", "gemini-3.5-flash-lite")
+# Five tries. The four waits between them add up to 10 minutes.
+MAX_MODEL_ATTEMPTS = 5
+RETRY_BACKOFF_SECONDS = (30, 90, 180, 300)
 MODEL_RULES = (
     "Write in UK English. Use short sentences. No hype. "
     "No invented figures, clients, quotes or results. "
@@ -521,6 +527,14 @@ Write 4 to 6 short sections, under 500 words in total. The opening section has a
 """
 
 
+class GeminiUnavailable(Exception):
+    """The API key is set, but Gemini did not return a usable draft."""
+
+
+def pause(seconds: float) -> None:
+    time.sleep(seconds)
+
+
 def call_gemini(model: str, prompt: str, key: str, json_mode: bool) -> tuple[int, str]:
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
     generation: dict[str, object] = {"temperature": 0.3, "maxOutputTokens": 8192}
@@ -601,53 +615,92 @@ def draft_from_model(text: str, topic: str) -> Draft:
     return Draft(title=title, description=description, excerpt=excerpt, sections=sections)
 
 
-def write_draft(topic: str, query: str, notes: str, key: str, force_placeholder: bool) -> tuple[Draft, str, str]:
+def _unavailable(errors: list[str]) -> GeminiUnavailable:
+    seen: list[str] = []
+    for item in errors:
+        if item not in seen:
+            seen.append(item)
+    detail = " ".join(seen[-8:]) if seen else "Gemini did not return a draft."
+    return GeminiUnavailable(
+        "Gemini did not return a draft after retrying each model up to "
+        f"{MAX_MODEL_ATTEMPTS} times, with about 10 minutes of waits between tries. {detail} "
+        "No pull request was opened. The calendar row is still queued, so the next run will try again."
+    )
+
+
+def _one_attempt(model: str, prompt: str, key: str, topic: str, call) -> tuple[str, Draft | str]:
+    """Try one model once. JSON mode is retried immediately without it on HTTP 400.
+
+    Returns ("ok", draft), ("retry", message) for 429/5xx/network, ("auth", message),
+    or ("skip", message) when this model should not be retried.
+    """
+    for json_mode in (True, False):
+        code, text = call(model, prompt, key, json_mode)
+        if code == 200 and text.strip():
+            try:
+                return "ok", draft_from_model(text, topic)
+            except (ValueError, json.JSONDecodeError):
+                if json_mode:
+                    continue
+                return "skip", f"{model} returned text that was not a usable draft."
+        if code == 400 and json_mode:
+            continue
+        if code in (401, 403):
+            return "auth", "Gemini did not accept the API key."
+        if code == 429 or code == 0 or code >= 500:
+            reason = "could not be reached" if code == 0 else f"HTTP {code}"
+            return "retry", f"{model} returned {reason}."
+        if code == 404:
+            return "skip", f"{model} was not found."
+        if code:
+            return "skip", f"{model} returned HTTP {code}."
+    return "skip", f"{model} did not return a draft."
+
+
+def write_draft(
+    topic: str,
+    query: str,
+    notes: str,
+    key: str,
+    force_placeholder: bool,
+    call=None,
+    wait=None,
+) -> tuple[Draft, str, str]:
     if force_placeholder or not key:
         return (
             placeholder_draft(topic, query),
             "placeholders",
             "No GEMINI_API_KEY is set, so this draft is a structure with [FAISAL TO ADD] placeholders.",
         )
+    call = call or call_gemini
+    wait = wait or pause
     prompt = build_prompt(topic, query, notes)
+    retryable = set(MODELS)
     errors: list[str] = []
-    for model in MODELS:
-        for json_mode in (True, False):
-            code, text = call_gemini(model, prompt, key, json_mode)
-            if code == 200 and text.strip():
-                try:
-                    return draft_from_model(text, topic), "gemini", f"Google Gemini ({model})."
-                except (ValueError, json.JSONDecodeError):
-                    errors.append(f"{model} returned text that was not a usable draft.")
-                    break
-            if code in (401, 403):
-                errors.append("Gemini did not accept the API key.")
-                return _placeholder_after_error(topic, query, errors)
-            if code == 429:
-                errors.append("Gemini's rate limit was reached.")
-                return _placeholder_after_error(topic, query, errors)
-            if code == 400 and json_mode:
+    for round_index in range(MAX_MODEL_ATTEMPTS):
+        if round_index:
+            seconds = RETRY_BACKOFF_SECONDS[round_index - 1]
+            log(f"Waiting {seconds} seconds before trying Gemini again.")
+            wait(seconds)
+        still_retryable: set[str] = set()
+        for model in MODELS:
+            if model not in retryable:
                 continue
-            if code == 404:
-                errors.append(f"{model} was not found.")
-                break
-            if code == 0:
-                errors.append(f"{model} could not be reached.")
-                break
-            if code >= 500:
-                errors.append(f"{model} returned HTTP {code}.")
-                break
-            if code and not json_mode:
-                errors.append(f"{model} returned HTTP {code}.")
-                break
-    if not errors:
-        errors.append("Gemini did not return a draft.")
-    return _placeholder_after_error(topic, query, errors)
-
-
-def _placeholder_after_error(topic: str, query: str, errors: list[str]) -> tuple[Draft, str, str]:
-    detail = errors[-1] if errors else "Gemini did not return a draft."
-    note = f"{detail} This draft uses [FAISAL TO ADD] placeholders instead."
-    return placeholder_draft(topic, query), "placeholders-after-gemini-error", note
+            log(f"Asking {model} (try {round_index + 1} of {MAX_MODEL_ATTEMPTS}).")
+            status, payload = _one_attempt(model, prompt, key, topic, call)
+            if status == "ok" and isinstance(payload, Draft):
+                return payload, "gemini", f"Google Gemini ({model})."
+            errors.append(str(payload))
+            if status == "auth":
+                raise GeminiUnavailable(
+                    f"{payload} No pull request was opened. The calendar row is still queued."
+                )
+            if status == "retry":
+                still_retryable.add(model)
+        retryable = still_retryable
+        if not retryable:
+            break
+    raise _unavailable(errors)
 
 
 def add_pr_note(notes: str, pr_url: str) -> str:
@@ -680,7 +733,15 @@ This is a normal pull request, so the Merge button is available. "Draft" in the 
 """
 
 
-def build(root: Path, row_index: int, row: dict[str, str], key: str, force_placeholder: bool) -> Built:
+def build(
+    root: Path,
+    row_index: int,
+    row: dict[str, str],
+    key: str,
+    force_placeholder: bool,
+    call=None,
+    wait=None,
+) -> Built:
     reference_path = root / REFERENCE_POST
     if not reference_path.is_file():
         raise SystemExit(f"Missing the template file {REFERENCE_POST}. No draft was created.")
@@ -691,7 +752,9 @@ def build(root: Path, row_index: int, row: dict[str, str], key: str, force_place
     parsed = date.fromisoformat(row["date"])
     slug = slugify(row["topic"])
     filename = unique_filename(root, slug)
-    draft, writer, writer_note = write_draft(row["topic"], row["target_query"], row["notes"], key, force_placeholder)
+    draft, writer, writer_note = write_draft(
+        row["topic"], row["target_query"], row["notes"], key, force_placeholder, call=call, wait=wait
+    )
     chrome = load_chrome(reference_path.read_text(encoding="utf-8"))
     related = choose_related(root, row["topic"], row["target_query"], row["notes"])
     page = render_page(
@@ -870,7 +933,129 @@ def self_test() -> None:
         assert "GEMINI_API_KEY=" not in built.html
         assert "AIza" not in built.html
 
+    _assert_gemini_retries()
     print("Draft post self-test passed.", file=sys.stderr)
+
+
+def _sample_model_json() -> str:
+    return json.dumps(
+        {
+            "title": "How a fractional marketing director spends the first month",
+            "meta_description": (
+                "What to line up in the first month with a fractional marketing director, "
+                "before any new spend is agreed."
+            ),
+            "card_excerpt": "What to line up before any new spend is agreed.",
+            "sections": [
+                {"heading": "", "paragraphs": ["Start from the numbers you already trust."], "bullets": []},
+                {"heading": "The first month", "paragraphs": ["Agree what a useful week looks like."], "bullets": []},
+            ],
+        }
+    )
+
+
+def _assert_gemini_retries() -> None:
+    assert sum(RETRY_BACKOFF_SECONDS) == 600
+    assert len(RETRY_BACKOFF_SECONDS) == MAX_MODEL_ATTEMPTS - 1
+    topic = "How a fractional marketing director spends the first month"
+    sleeps: list[float] = []
+
+    def no_wait(seconds: float) -> None:
+        sleeps.append(seconds)
+
+    calls: list[tuple[str, bool]] = []
+
+    def busy_then_ok(model: str, prompt: str, key: str, json_mode: bool) -> tuple[int, str]:
+        calls.append((model, json_mode))
+        if model == MODELS[0] and sum(1 for name, _mode in calls if name == MODELS[0]) >= 3:
+            return 200, _sample_model_json()
+        return 503, "high demand"
+
+    sleeps.clear()
+    calls.clear()
+    draft, writer, _note = write_draft(topic, "query", "", "test-key", False, call=busy_then_ok, wait=no_wait)
+    assert writer == "gemini"
+    assert draft.title == topic
+    assert sleeps == [30, 90]
+    assert sum(1 for name, _mode in calls if name == MODELS[0]) == 3
+    assert "[FAISAL TO ADD]" in MODEL_RULES
+
+    calls.clear()
+    sleeps.clear()
+
+    def always_busy(model: str, prompt: str, key: str, json_mode: bool) -> tuple[int, str]:
+        calls.append((model, json_mode))
+        return 503, "high demand"
+
+    try:
+        write_draft(topic, "query", "", "test-key", False, call=always_busy, wait=no_wait)
+    except GeminiUnavailable as exc:
+        message = str(exc)
+    else:
+        raise SystemExit("Self-test failed. A run of HTTP 503 responses still returned a draft.")
+    assert sleeps == [30, 90, 180, 300]
+    assert "No pull request was opened" in message
+    assert "still queued" in message
+    assert all(sum(1 for name, _mode in calls if name == model) == MAX_MODEL_ATTEMPTS for model in MODELS)
+
+    calls.clear()
+    sleeps.clear()
+
+    def missing(model: str, prompt: str, key: str, json_mode: bool) -> tuple[int, str]:
+        calls.append((model, json_mode))
+        return 404, "not found"
+
+    try:
+        write_draft(topic, "query", "", "test-key", False, call=missing, wait=no_wait)
+    except GeminiUnavailable:
+        pass
+    else:
+        raise SystemExit("Self-test failed. HTTP 404 still returned a draft.")
+    assert sleeps == []
+    assert len(calls) == len(MODELS)
+
+    calls.clear()
+
+    def limited_then_ok(model: str, prompt: str, key: str, json_mode: bool) -> tuple[int, str]:
+        calls.append((model, json_mode))
+        if model == MODELS[0] and sum(1 for name, _mode in calls if name == MODELS[0]) >= 2:
+            return 200, _sample_model_json()
+        if model == MODELS[0]:
+            return 429, "slow down"
+        return 503, "high demand"
+
+    sleeps.clear()
+    draft, writer, _note = write_draft(topic, "query", "", "test-key", False, call=limited_then_ok, wait=no_wait)
+    assert writer == "gemini"
+    assert sleeps == [30]
+    assert sum(1 for name, _mode in calls if name == MODELS[0]) == 2
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        repo = Path(__file__).resolve().parents[1]
+        shutil.copy(repo / REFERENCE_POST, root / REFERENCE_POST)
+        shutil.copy(repo / "blog.html", root / "blog.html")
+        shutil.copy(repo / "sitemap.xml", root / "sitemap.xml")
+        (root / "content").mkdir()
+        calendar = root / CALENDAR_NAME
+        calendar.write_text(
+            "date,topic,target_query,status,notes\n"
+            "2026-11-10,Google Ads not converting,google ads not converting,queued,\n",
+            encoding="utf-8",
+        )
+        before = calendar.read_text(encoding="utf-8")
+        rows = read_calendar(calendar)
+        picked = next_queued(rows)
+        assert picked is not None
+        try:
+            build(root, picked[0], picked[1], "test-key", False, call=always_busy, wait=no_wait)
+        except GeminiUnavailable as exc:
+            assert "No pull request was opened" in str(exc)
+        else:
+            raise SystemExit("Self-test failed. build() opened a draft after Gemini kept returning HTTP 503.")
+        assert calendar.read_text(encoding="utf-8") == before
+        assert not (root / "blog-google-ads-not-converting.html").exists()
+        assert picked[1]["status"] == "queued"
 
 
 def main() -> int:
@@ -919,7 +1104,12 @@ def main() -> int:
         log("No queued topics in the content calendar. Nothing was drafted.")
         return 0
     index, row = picked
-    built = build(root, index, row, api_key(args.force_placeholder), args.force_placeholder)
+    try:
+        built = build(root, index, row, api_key(args.force_placeholder), args.force_placeholder)
+    except GeminiUnavailable as exc:
+        set_output("created", "false")
+        log(str(exc))
+        return 1
     if args.dry_run:
         output = Path(args.output_dir) if args.output_dir else Path(tempfile.mkdtemp(prefix="draft-preview-"))
         output.mkdir(parents=True, exist_ok=True)

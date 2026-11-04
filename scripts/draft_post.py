@@ -78,6 +78,7 @@ class Draft:
     description: str
     excerpt: str
     sections: list[Section]
+    seo_title: str = ""
 
 
 @dataclass
@@ -183,6 +184,21 @@ def placeholder_description(topic: str) -> str:
 
 def uk_date(value: date) -> str:
     return f"{value.day} {value.strftime('%B %Y')}"
+
+
+def today_utc() -> date:
+    return datetime.now(timezone.utc).date()
+
+
+def shorten_title(text: str, limit: int = 60) -> str:
+    """A browser and search title. The H1 can stay longer."""
+    text = collapse(text)
+    if len(text) <= limit:
+        return text
+    cut = text[: limit + 1].rsplit(" ", 1)[0].rstrip(".,;:?")
+    if len(cut) >= 15:
+        return cut
+    return text[:limit].rstrip()
 
 
 def json_for_script(payload: object) -> str:
@@ -375,6 +391,7 @@ def render_page(
     chrome: dict[str, str],
     filename: str,
     title: str,
+    seo_title: str,
     description: str,
     excerpt: str,
     display_date: str,
@@ -383,7 +400,9 @@ def render_page(
     related: list[tuple[str, str]],
 ) -> str:
     canonical = f"{SITE}/{filename}"
+    seo_title = shorten_title(seo_title or title)
     og_description = excerpt if 40 <= len(excerpt) <= 200 else description
+    twitter_description = description if len(description) <= 200 else og_description
     posting = {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
@@ -419,21 +438,25 @@ def render_page(
         ],
     }
     head = f"""<!doctype html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <meta name="description" content="{esc_attr(description)}">
-<title>{esc_text(title)}</title>
+<title>{esc_text(seo_title)}</title>
 <link rel="canonical" href="{esc_attr(canonical)}">
-<meta property="og:title" content="{esc_attr(title)}">
+<meta property="og:title" content="{esc_attr(seo_title)}">
 <meta property="og:description" content="{esc_attr(og_description)}">
 <meta property="og:image" content="{SITE}/social-preview.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:url" content="{esc_attr(canonical)}">
 <meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{esc_attr(seo_title)}">
+<meta name="twitter:description" content="{esc_attr(twitter_description)}">
+<meta name="twitter:image" content="{SITE}/social-preview.jpg">
 {chrome["preload"]}
 {chrome["assets"]}
 
@@ -506,6 +529,7 @@ def placeholder_draft(topic: str, query: str) -> Draft:
         description=placeholder_description(topic),
         excerpt=topic if len(topic) <= 160 else fit_description(topic, topic),
         sections=sections,
+        seo_title=shorten_title(topic),
     )
 
 
@@ -568,6 +592,12 @@ def validation_problems(topic: str, draft: Draft) -> list[str]:
         problems.append(
             f"The draft is about {words} words. Write at least {MIN_BODY_WORDS} words, and keep it under about 1,400."
         )
+    seo = collapse(draft.seo_title)
+    if not seo or len(seo) > 60:
+        problems.append(
+            f"The SEO title is {len(seo)} characters ({seo or 'empty'}). "
+            "It must be 60 characters or fewer. The H1 can stay long."
+        )
     return problems
 
 
@@ -598,11 +628,12 @@ Topic: {topic}
 Target search query: {query_line}
 Notes from the calendar: {notes_line}
 
-If the title has a number, such as seven checks or five signs, the body must have exactly that many H2 sections. Write about 900 to 1,400 words. Start with a short intro whose heading is an empty string. {shape} Under each H2, give practical steps in short sentences. End with a short close whose heading is an empty string, and name one relevant page already on this site, such as the marketing performance audit or services and engagement models. Do not invent a URL. Keep the number in the title.
+If the title has a number, such as seven checks or five signs, the body must have exactly that many H2 sections. Write about 900 to 1,400 words. Start with a short intro whose heading is an empty string. {shape} Under each H2, give practical steps in short sentences. End with a short close whose heading is an empty string, and name one relevant page already on this site, such as the marketing performance audit or services and engagement models. Do not invent a URL. Keep the number in the H1. Also return seo_title, which is the same idea in 60 characters or fewer, for the browser tab and search results. The H1 itself can stay long.
 {feedback_block}
 Return JSON only, with this shape:
 {{
-  "title": "based on the topic",
+  "title": "the H1, based on the topic. It may be longer than 60 characters",
+  "seo_title": "60 characters or fewer, for the browser tab and search results",
   "meta_description": "120 to 160 characters",
   "card_excerpt": "one short sentence under 160 characters",
   "sections": [
@@ -675,9 +706,11 @@ def parse_model_json(text: str) -> dict:
 
 def draft_from_model(text: str, topic: str) -> Draft:
     data = parse_model_json(text)
-    title = plain(data.get("title"), 120) or topic
+    title = plain(data.get("title"), 160) or topic
     if not shares_topic_word(topic, title):
         title = topic
+    raw_seo = plain(data.get("seo_title"), 80)
+    seo_title = raw_seo or shorten_title(title)
     sections: list[Section] = []
     for raw in (data.get("sections") or [])[:16]:
         if not isinstance(raw, dict):
@@ -697,7 +730,7 @@ def draft_from_model(text: str, topic: str) -> Draft:
     excerpt = plain(data.get("card_excerpt"), 180) or (sections[0].paragraphs[0] if sections[0].paragraphs else title)
     if len(excerpt) > 160:
         excerpt = fit_description(excerpt, title)
-    return Draft(title=title, description=description, excerpt=excerpt, sections=sections)
+    return Draft(title=title, description=description, excerpt=excerpt, sections=sections, seo_title=seo_title)
 
 
 def _unavailable(errors: list[str]) -> GeminiUnavailable:
@@ -867,6 +900,10 @@ def build(
     if not blog_path.is_file() or not sitemap_path.is_file():
         raise SystemExit("blog.html or sitemap.xml is missing. No draft was created.")
     parsed = date.fromisoformat(row["date"])
+    # The calendar date is the plan. The page shows the day the draft is made,
+    # and a merge workflow replaces that with the day it reaches main.
+    # A planned date in the future is never written onto the page.
+    published = today_utc()
     slug = slugify(row["topic"])
     filename = unique_filename(root, slug)
     draft, writer, writer_note = write_draft(
@@ -878,14 +915,15 @@ def build(
         chrome,
         filename,
         draft.title,
+        draft.seo_title,
         draft.description,
         draft.excerpt,
-        uk_date(parsed),
-        parsed.isoformat(),
+        uk_date(published),
+        published.isoformat(),
         draft.sections,
         related,
     )
-    card = card_html(filename, uk_date(parsed), draft.title, draft.excerpt)
+    card = card_html(filename, uk_date(published), draft.title, draft.excerpt)
     return Built(
         filename=filename,
         slug=slug,
@@ -903,16 +941,44 @@ def build(
     )
 
 
+def insert_llms(text: str, title: str, url: str, summary: str) -> str:
+    """Add a post under Insights, in the same bullet shape as the other entries."""
+    if url in text:
+        return text
+    blurb = collapse(summary).rstrip(".")
+    if len(blurb) > 180:
+        blurb = blurb[:177].rsplit(" ", 1)[0].rstrip(".,;:")
+    line = f"- [{collapse(title)}]({url}): {blurb}."
+    marker = "## Insights and resources\n"
+    if marker in text:
+        return text.replace(marker, marker + line + "\n", 1)
+    return text.rstrip() + "\n\n" + marker + line + "\n"
+
+
+def published_iso(html: str) -> str:
+    match = re.search(r'"datePublished":"(\d{4}-\d{2}-\d{2})"', html)
+    if match:
+        return match.group(1)
+    return today_utc().isoformat()
+
+
 def apply_built(root: Path, built: Built, rows: list[dict[str, str]]) -> None:
     blog_path = root / "blog.html"
     sitemap_path = root / "sitemap.xml"
     calendar_path = root / CALENDAR_NAME
     new_blog = insert_card(blog_path.read_text(encoding="utf-8"), built.card)
-    new_sitemap = insert_sitemap(sitemap_path.read_text(encoding="utf-8"), built.filename, built.calendar_date)
+    published = published_iso(built.html)
+    new_sitemap = insert_sitemap(sitemap_path.read_text(encoding="utf-8"), built.filename, published)
     rows[built.row_index]["status"] = "drafted"
     (root / built.filename).write_text(built.html, encoding="utf-8")
     blog_path.write_text(new_blog, encoding="utf-8")
     sitemap_path.write_text(new_sitemap, encoding="utf-8")
+    llms_path = root / "llms.txt"
+    if llms_path.is_file():
+        llms_path.write_text(
+            insert_llms(llms_path.read_text(encoding="utf-8"), built.title, f"{SITE}/{built.filename}", built.query or built.topic),
+            encoding="utf-8",
+        )
     write_calendar(calendar_path, rows)
 
 
@@ -991,6 +1057,11 @@ def self_test() -> None:
         assert row["topic"].startswith("How a fractional")
         built = build(root, index, row, key="", force_placeholder=True)
         assert built.writer == "placeholders"
+        assert "2026-12-01" not in built.html
+        assert today_utc().isoformat() in built.html
+        assert '<html lang="en-GB">' in built.html
+        assert 'name="twitter:card" content="summary_large_image"' in built.html
+        assert len(re.search(r"<title>(.*?)</title>", built.html).group(1)) <= 60
         assert "[FAISAL TO ADD]" in built.html
         assert "How a fractional marketing director spends the first month" in built.html
         assert "fractional marketing director first month" in built.html
@@ -1245,6 +1316,15 @@ def _assert_title_fit() -> None:
         "Seven checks before you spend another pound",
     )
     assert validation_problems("Seven checks before you spend another pound", long_enough) == []
+    too_long = Draft(
+        title="Seven checks before you spend another pound",
+        seo_title="Google Ads Not Converting? Seven Checks Before You Spend Another Pound Today",
+        description="A note.",
+        excerpt="A note.",
+        sections=long_enough.sections,
+    )
+    assert any("SEO title" in item for item in validation_problems(too_long.title, too_long))
+    assert len(shorten_title(too_long.seo_title)) <= 60
     assert len(h2_headings(long_enough)) == 7
     assert body_word_count(long_enough) >= MIN_BODY_WORDS
 
@@ -1354,7 +1434,7 @@ def main() -> int:
         output.mkdir(parents=True, exist_ok=True)
         (output / built.filename).write_text(built.html, encoding="utf-8")
         blog = insert_card((root / "blog.html").read_text(encoding="utf-8"), built.card)
-        sitemap = insert_sitemap((root / "sitemap.xml").read_text(encoding="utf-8"), built.filename, built.calendar_date)
+        sitemap = insert_sitemap((root / "sitemap.xml").read_text(encoding="utf-8"), built.filename, published_iso(built.html))
         (output / "blog.html").write_text(blog, encoding="utf-8")
         (output / "sitemap.xml").write_text(sitemap, encoding="utf-8")
         preview_rows = [dict(item) for item in rows]

@@ -305,14 +305,23 @@ class _PageParser(HTMLParser):
         self._in_card = False
         self._card_href: str | None = None
         self.blog_cards: list[str] = []
+        self.lang = ""
+        self.twitter_card = ""
+        self.og_title = ""
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attr = {key.lower(): (value or "") for key, value in attrs}
+        if tag == "html":
+            self.lang = attr.get("lang", "")
         if tag == "title" and not self._title_done:
             self._in_title = True
             return
         if tag == "meta" and attr.get("name", "").lower() == "description" and not self.description:
             self.description = attr.get("content", "")
+        if tag == "meta" and attr.get("name", "").lower() == "twitter:card" and not self.twitter_card:
+            self.twitter_card = attr.get("content", "")
+        if tag == "meta" and attr.get("property", "").lower() == "og:title" and not self.og_title:
+            self.og_title = attr.get("content", "")
         if tag == "link":
             rel = attr.get("rel", "").lower().split()
             href = attr.get("href", "")
@@ -368,6 +377,10 @@ class PageFacts:
     links: list[str] = field(default_factory=list)
     blog_cards: list[str] = field(default_factory=list)
     truncated: bool = False
+    lang: str = ""
+    twitter_card: str = ""
+    og_title: str = ""
+    schema_dates: list[tuple[str, str]] = field(default_factory=list)
 
 
 def analyse_html(html: str, page_url: str, truncated: bool = False) -> PageFacts:
@@ -443,7 +456,37 @@ def analyse_html(html: str, page_url: str, truncated: bool = False) -> PageFacts
         links=links,
         blog_cards=cards,
         truncated=truncated,
+        lang=parser.lang,
+        twitter_card=parser.twitter_card,
+        og_title=collapse(parser.og_title),
+        schema_dates=schema_dates(nodes),
     )
+
+
+def schema_dates(nodes: list[object]) -> list[tuple[str, str]]:
+    found: list[tuple[str, str]] = []
+
+    def walk(node: object) -> None:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key in ("datePublished", "dateModified") and isinstance(value, str):
+                    found.append((key, value.strip()[:10]))
+                else:
+                    walk(value)
+        elif isinstance(node, list):
+            for item in node:
+                walk(item)
+
+    for node in nodes:
+        walk(node)
+    return found
+
+
+def parse_iso_date(value: str):
+    try:
+        return datetime.strptime(value[:10], "%Y-%m-%d").date()
+    except ValueError:
+        return None
 
 
 @dataclass
@@ -567,12 +610,13 @@ def section_block(title: str, lines: list[str], empty: str) -> list[str]:
     return block
 
 
-def run(root: Path, site: str, local_only: bool = False) -> str:
+def run(root: Path, site: str, local_only: bool = False, today=None) -> str:
     global SITE, HOST
     SITE = site.rstrip("/")
     HOST = host_of(SITE) or HOST
     root = root.resolve()
     now = datetime.now(timezone.utc)
+    today = today or now.date()
     stamp = f"{now.day} {now.strftime('%B %Y')}, {now.strftime('%H:%M')} UTC"
 
     notes: list[Note] = []
@@ -777,6 +821,16 @@ def run(root: Path, site: str, local_only: bool = False) -> str:
                 kind = "short" if len(facts.title) < TITLE_MIN else "long"
                 shown = facts.title if len(facts.title) <= 90 else facts.title[:87] + "..."
                 add("length", path, f"The title is {kind} at {len(facts.title)} characters (aim for {TITLE_MIN} to {TITLE_MAX}). \"{shown}\"", source)
+            if facts.og_title and len(facts.og_title) > TITLE_MAX and facts.og_title != facts.title:
+                add("length", path, f"The social title is long at {len(facts.og_title)} characters (aim for {TITLE_MAX} or fewer).", source)
+            if facts.lang.lower() != "en-gb":
+                add("lang", path, f"The page language is {facts.lang or 'missing'}. It should be en-GB.", source)
+            if "BlogPosting" in facts.types and facts.twitter_card.lower() != "summary_large_image":
+                add("social", path, "This post has no twitter:card.", source)
+            for label, raw in facts.schema_dates:
+                parsed_date = parse_iso_date(raw)
+                if parsed_date and parsed_date > today:
+                    add("dates", path, f"{label} is {raw}, which is after today ({today.isoformat()}).", source)
             if not facts.description:
                 add("meta", path, "The meta description is missing.", source)
             elif len(facts.description) < DESC_MIN or len(facts.description) > DESC_MAX:
@@ -886,9 +940,32 @@ def run(root: Path, site: str, local_only: bool = False) -> str:
             linked = ", ".join(sorted(sources)[:6])
             add("links", short_path(target), f"The linked file is not in the repository ({rel}). Linked from {linked}.", "repo")
 
-    rendered = render_notes(notes)
     blog_count = len(blog_post_urls | card_urls)
-    fix_sections = {"files", "status", "meta", "canonical", "schema", "links", "alt"}
+    def future_lastmods(xml: str | None, source: str) -> None:
+        if not xml:
+            return
+        for match in re.finditer(
+            r"<loc>\s*([^<]+?)\s*</loc>\s*<lastmod>\s*(\d{4}-\d{2}-\d{2})\s*</lastmod>",
+            xml,
+        ):
+            loc, lastmod = match.group(1).strip(), match.group(2)
+            parsed_date = parse_iso_date(lastmod)
+            if parsed_date and parsed_date > today:
+                add("dates", short_path(loc), f"sitemap lastmod is {lastmod}, which is after today ({today.isoformat()}).", source)
+
+    future_lastmods(repo_sitemap, "repo")
+    if not local_only:
+        future_lastmods(live_sitemap, "live")
+
+    llms_blob = "\n".join(part for part in (repo_llms, live_llms) if part)
+    for loc in urls:
+        path = short_path(loc)
+        mentioned = loc in llms_blob or (path != "/" and path in llms_blob)
+        if not mentioned:
+            add("llms", path, "This sitemap URL is not mentioned in llms.txt.", "repo")
+
+    rendered = render_notes(notes)
+    fix_sections = {"files", "status", "meta", "canonical", "schema", "links", "alt", "dates", "lang", "social", "llms"}
     fix_count = sum(1 for note in notes if note.section in fix_sections)
     length_count = sum(1 for note in notes if note.section == "length")
 
@@ -906,6 +983,10 @@ def run(root: Path, site: str, local_only: bool = False) -> str:
     schema_lines = lines_for("schema")
     link_lines = lines_for("links")
     alt_lines = lines_for("alt")
+    date_lines = lines_for("dates")
+    lang_lines = lines_for("lang")
+    social_lines = lines_for("social")
+    llms_lines = lines_for("llms")
 
     if fix_count == 0 and length_count == 0:
         summary = "Nothing needs attention this week."
@@ -942,6 +1023,14 @@ def run(root: Path, site: str, local_only: bool = False) -> str:
         fine.append("No broken internal links.")
     if not alt_lines:
         fine.append("No images with missing alt text.")
+    if not date_lines:
+        fine.append("No publish date or sitemap lastmod is in the future.")
+    if not lang_lines and pages_with_html:
+        fine.append("Every checked page is marked en-GB.")
+    if not social_lines and blog_count:
+        fine.append("Every blog post has a twitter:card.")
+    if not llms_lines:
+        fine.append("Every sitemap URL is mentioned in llms.txt.")
     if not status_lines and not local_only and urls:
         fine.append("Every sitemap URL returned HTTP 200.")
 
@@ -985,6 +1074,10 @@ def run(root: Path, site: str, local_only: bool = False) -> str:
     parts += section_block("Blog schema", schema_lines, schema_empty)
     parts += section_block("Broken internal links", link_lines, "None.")
     parts += section_block("Images missing alt text", alt_lines, "None.")
+    parts += section_block("Dates", date_lines, "No publish date or sitemap lastmod is in the future.")
+    parts += section_block("Language", lang_lines, "Every checked page is marked en-GB.")
+    parts += section_block("Twitter cards", social_lines, "Every blog post has a twitter:card.")
+    parts += section_block("llms.txt coverage", llms_lines, "Every sitemap URL is mentioned in llms.txt.")
     if fine:
         parts += section_block("What looks fine", [f"- {item}" for item in fine], "Nothing else to add.")
     parts.append("Report-id: site-health-bot")
@@ -1006,7 +1099,7 @@ def self_test() -> None:
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://faisalconsulting.co.uk/</loc></url>
   <url><loc>https://faisalconsulting.co.uk/blog.html</loc></url>
-  <url><loc>https://faisalconsulting.co.uk/post.html</loc></url>
+  <url><loc>https://faisalconsulting.co.uk/post.html</loc><lastmod>2099-01-01</lastmod></url>
 </urlset>
 """,
             encoding="utf-8",
@@ -1048,7 +1141,7 @@ def self_test() -> None:
         )
         long_title = "This title is deliberately much longer than sixty characters so the check flags it"
         (root / "post.html").write_text(
-            f"""<!doctype html><html><head>
+            f"""<!doctype html><html lang="en"><head>
 <title>{long_title}</title>
 <meta name="description" content="Too short.">
 <link rel="canonical" href="https://faisalconsulting.co.uk/other.html">
@@ -1071,6 +1164,10 @@ def self_test() -> None:
             "The meta description is short",
             "robots.txt is valid",
             "llms.txt is present",
+            "which is after today",
+            "no twitter:card",
+            "should be en-GB",
+            "not mentioned in llms.txt",
         ]
         # blog.html is a card host, not itself a post, so it needs no BlogPosting.
         # post.html is a card target and has BlogPosting, so missing breadcrumb is reported.

@@ -35,7 +35,7 @@ REFERENCE_POST = "blog-hiring-fractional-marketing-director.html"
 CALENDAR_NAME = Path("content") / "calendar.csv"
 EXPECTED_COLUMNS = ["date", "topic", "target_query", "status", "notes"]
 INSIGHTS_MARKER = '<h2 class="blog-section-title blog-section-title--second">Insights</h2>'
-MODELS = ("gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest")
+MODELS = ("gemini-3.8-flash", "gemini-flash-latest", "gemini-3.5-flash-lite")
 MODEL_RULES = (
     "Write in UK English. Use short sentences. No hype. "
     "No invented figures, clients, quotes or results. "

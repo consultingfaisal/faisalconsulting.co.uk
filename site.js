@@ -42,6 +42,21 @@
     document.head.appendChild(script);
   }
 
+  // Google tags load on every page with consent denied by default (consent
+  // mode v2). Until a visitor accepts, Google receives only cookieless pings.
+  // LinkedIn does not support consent mode, so it still waits for "accept".
+  function loadGoogleTags() {
+    window.dataLayer.push({
+      "gtm.start": new Date().getTime(),
+      event: "gtm.js"
+    });
+    addScript("https://www.googletagmanager.com/gtm.js?id=GTM-5XC8BSXV", "fc-gtm");
+
+    addScript("https://www.googletagmanager.com/gtag/js?id=G-X8F5VE40V9", "fc-ga4");
+    gtag("js", new Date());
+    gtag("config", "G-X8F5VE40V9");
+  }
+
   function loadTracking() {
     if (tagsLoaded) return;
     tagsLoaded = true;
@@ -52,16 +67,6 @@
       ad_personalization: "granted",
       analytics_storage: "granted"
     });
-
-    window.dataLayer.push({
-      "gtm.start": new Date().getTime(),
-      event: "gtm.js"
-    });
-    addScript("https://www.googletagmanager.com/gtm.js?id=GTM-5XC8BSXV", "fc-gtm");
-
-    addScript("https://www.googletagmanager.com/gtag/js?id=G-X8F5VE40V9", "fc-ga4");
-    gtag("js", new Date());
-    gtag("config", "G-X8F5VE40V9");
 
     window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
     if (window._linkedin_data_partner_ids.indexOf("10013452") === -1) {
@@ -408,6 +413,7 @@
   }
 
   if (savedConsent() === "accepted") loadTracking();
+  loadGoogleTags();
 
   document.addEventListener("DOMContentLoaded", function () {
     prepareNavigation();

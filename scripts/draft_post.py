@@ -38,10 +38,25 @@ REFERENCE_POST = "blog-hiring-fractional-marketing-director.html"
 CALENDAR_NAME = Path("content") / "calendar.csv"
 EXPECTED_COLUMNS = ["date", "topic", "target_query", "status", "notes"]
 INSIGHTS_MARKER = '<h2 class="blog-section-title blog-section-title--second">Insights</h2>'
+# Stronger models first. gemini-3.5-flash-lite is only the last fallback.
 MODELS = ("gemini-3.8-flash", "gemini-flash-latest", "gemini-3.5-flash-lite")
 # Five tries. The four waits between them add up to 10 minutes.
 MAX_MODEL_ATTEMPTS = 5
 RETRY_BACKOFF_SECONDS = (30, 90, 180, 300)
+MIN_BODY_WORDS = 900
+COUNT_WORDS = {
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+}
 MODEL_RULES = (
     "Write in UK English. Use short sentences. No hype. "
     "No invented figures, clients, quotes or results. "
@@ -502,9 +517,77 @@ def shares_topic_word(topic: str, title: str) -> bool:
     return any(word in haystack for word in words)
 
 
-def build_prompt(topic: str, query: str, notes: str) -> str:
+def promised_count(title: str) -> int | None:
+    """The first count in a title, such as 'seven checks' or '5 signs'.
+
+    Years and larger figures are ignored. 'one' is ignored so a title like
+    'one month' does not demand a single section.
+    """
+    found: list[tuple[int, int]] = []
+    haystack = title.lower()
+    for word, value in COUNT_WORDS.items():
+        for match in re.finditer(rf"\b{word}\b", haystack):
+            found.append((match.start(), value))
+    for match in re.finditer(r"\b([1-9]|1[0-2])\b", haystack):
+        found.append((match.start(), int(match.group(1))))
+    if not found:
+        return None
+    found.sort()
+    return found[0][1]
+
+
+def h2_headings(draft: Draft) -> list[str]:
+    return [section.heading for section in draft.sections if section.heading]
+
+
+def body_word_count(draft: Draft) -> int:
+    parts: list[str] = []
+    for section in draft.sections:
+        if section.heading:
+            parts.append(section.heading)
+        parts.extend(section.paragraphs)
+        parts.extend(section.bullets)
+    return len(re.findall(r"[A-Za-z0-9][A-Za-z0-9'’-]*", " ".join(parts)))
+
+
+def validation_problems(topic: str, draft: Draft) -> list[str]:
+    """Empty means the draft is fit to publish as a pull request."""
+    problems: list[str] = []
+    expected = promised_count(topic)
+    if expected is None:
+        expected = promised_count(draft.title)
+    actual = h2_headings(draft)
+    if expected is not None and len(actual) != expected:
+        shown = "; ".join(actual) if actual else "none"
+        problems.append(
+            f"The title promises {expected} sections, but the draft has {len(actual)} H2 headings ({shown}). "
+            f"Write exactly {expected} H2 sections, one per item. The intro and the close must use an empty heading."
+        )
+    words = body_word_count(draft)
+    if words < MIN_BODY_WORDS:
+        problems.append(
+            f"The draft is about {words} words. Write at least {MIN_BODY_WORDS} words, and keep it under about 1,400."
+        )
+    return problems
+
+
+def build_prompt(topic: str, query: str, notes: str, feedback: str = "") -> str:
     query_line = query or "No target query was set."
     notes_line = notes or "No extra notes."
+    count = promised_count(topic)
+    if count:
+        shape = (
+            f"The title promises {count} items. Write exactly {count} H2 sections, one per item. "
+            "Do not stop early. Do not add an extra H2 for the close."
+        )
+    else:
+        shape = "Use as many H2 sections as the topic needs. Do not stop after a sketch."
+    feedback_block = ""
+    if feedback.strip():
+        feedback_block = (
+            "\nThe previous draft failed these checks. Write the whole draft again and fix every one:\n"
+            f"{feedback.strip()}\n"
+        )
     return f"""{MODEL_RULES}
 
 You are drafting an insight for Faisal Mahmud of Faisal Consulting. He is a fractional and interim marketing director based in Alicante, working across the UK and Europe. The reader is a founder or marketing lead. Be calm and specific. Say what to check. Do not sell.
@@ -515,7 +598,9 @@ Topic: {topic}
 Target search query: {query_line}
 Notes from the calendar: {notes_line}
 
-Write 4 to 6 short sections, under 500 words in total. The opening section has an empty heading. At least one later heading uses words from the topic. Return JSON only, with this shape:
+If the title has a number, such as seven checks or five signs, the body must have exactly that many H2 sections. Write about 900 to 1,400 words. Start with a short intro whose heading is an empty string. {shape} Under each H2, give practical steps in short sentences. End with a short close whose heading is an empty string, and name one relevant page already on this site, such as the marketing performance audit or services and engagement models. Do not invent a URL. Keep the number in the title.
+{feedback_block}
+Return JSON only, with this shape:
 {{
   "title": "based on the topic",
   "meta_description": "120 to 160 characters",
@@ -594,12 +679,12 @@ def draft_from_model(text: str, topic: str) -> Draft:
     if not shares_topic_word(topic, title):
         title = topic
     sections: list[Section] = []
-    for raw in (data.get("sections") or [])[:8]:
+    for raw in (data.get("sections") or [])[:16]:
         if not isinstance(raw, dict):
             continue
-        paragraphs = [plain(item) for item in (raw.get("paragraphs") or [])[:4]]
+        paragraphs = [plain(item, 4000) for item in (raw.get("paragraphs") or [])[:6]]
         paragraphs = [item for item in paragraphs if item]
-        bullets = [plain(item, 240) for item in (raw.get("bullets") or [])[:6]]
+        bullets = [plain(item, 400) for item in (raw.get("bullets") or [])[:8]]
         bullets = [item for item in bullets if item]
         heading = plain(raw.get("heading"), 120)
         if paragraphs or bullets or heading:
@@ -689,7 +774,14 @@ def write_draft(
             log(f"Asking {model} (try {round_index + 1} of {MAX_MODEL_ATTEMPTS}).")
             status, payload = _one_attempt(model, prompt, key, topic, call)
             if status == "ok" and isinstance(payload, Draft):
-                return payload, "gemini", f"Google Gemini ({model})."
+                accepted, retry_later = _accept_or_regenerate(
+                    model, topic, query, notes, key, call, payload, errors
+                )
+                if accepted is not None:
+                    return accepted, "gemini", f"Google Gemini ({model})."
+                if retry_later:
+                    still_retryable.add(model)
+                continue
             errors.append(str(payload))
             if status == "auth":
                 raise GeminiUnavailable(
@@ -701,6 +793,31 @@ def write_draft(
         if not retryable:
             break
     raise _unavailable(errors)
+
+
+def _accept_or_regenerate(
+    model, topic, query, notes, key, call, draft: Draft, errors: list[str]
+) -> tuple[Draft | None, bool]:
+    """Keep a draft that fits its title. If it does not, ask the same model once more.
+
+    The boolean is true when the second call hit a retryable transport error.
+    """
+    problems = validation_problems(topic, draft)
+    if not problems:
+        return draft, False
+    feedback = " ".join(problems)
+    log(f"{model} draft did not fit the title. Asking once more.")
+    status, payload = _one_attempt(model, build_prompt(topic, query, notes, feedback), key, topic, call)
+    if status == "ok" and isinstance(payload, Draft):
+        again = validation_problems(topic, payload)
+        if not again:
+            return payload, False
+        errors.append(f"{model} still missed the title after a second draft. {' '.join(again)}")
+        return None, False
+    if status == "auth":
+        raise GeminiUnavailable(f"{payload} No pull request was opened. The calendar row is still queued.")
+    errors.append(str(payload))
+    return None, status == "retry"
 
 
 def add_pr_note(notes: str, pr_url: str) -> str:
@@ -832,6 +949,8 @@ def self_test() -> None:
     repo = Path(__file__).resolve().parents[1]
     reference = (repo / REFERENCE_POST).read_text(encoding="utf-8")
     assert MODEL_RULES in build_prompt("Topic", "query", "")
+    assert "under 500 words" not in build_prompt("Topic", "query", "")
+    assert "exactly 7 H2 sections" in build_prompt("Seven checks before you spend", "", "")
     assert "UK English" in MODEL_RULES
     assert "short sentences" in MODEL_RULES
     assert "No hype" in MODEL_RULES
@@ -934,7 +1053,17 @@ def self_test() -> None:
         assert "AIza" not in built.html
 
     _assert_gemini_retries()
+    _assert_title_fit()
     print("Draft post self-test passed.", file=sys.stderr)
+
+
+def _filler(words: int) -> str:
+    sentence = "Check the source before you change the budget."
+    chunk = sentence.split()
+    out: list[str] = []
+    while len(out) < words:
+        out.extend(chunk)
+    return " ".join(out[:words])
 
 
 def _sample_model_json() -> str:
@@ -947,8 +1076,8 @@ def _sample_model_json() -> str:
             ),
             "card_excerpt": "What to line up before any new spend is agreed.",
             "sections": [
-                {"heading": "", "paragraphs": ["Start from the numbers you already trust."], "bullets": []},
-                {"heading": "The first month", "paragraphs": ["Agree what a useful week looks like."], "bullets": []},
+                {"heading": "", "paragraphs": [_filler(500)], "bullets": []},
+                {"heading": "The first month", "paragraphs": [_filler(500)], "bullets": []},
             ],
         }
     )
@@ -1056,6 +1185,116 @@ def _assert_gemini_retries() -> None:
         assert calendar.read_text(encoding="utf-8") == before
         assert not (root / "blog-google-ads-not-converting.html").exists()
         assert picked[1]["status"] == "queued"
+
+
+def _seven_draft_json(headings: int, words_each: int) -> str:
+    sections = [{"heading": "", "paragraphs": [_filler(80)], "bullets": []}]
+    for number in range(1, headings + 1):
+        sections.append(
+            {
+                "heading": f"Check {number}",
+                "paragraphs": [_filler(words_each)],
+                "bullets": ["Write down what the account shows.", "Do not change the budget yet."],
+            }
+        )
+    sections.append(
+        {
+            "heading": "",
+            "paragraphs": ["The marketing performance audit is the page to read next."],
+            "bullets": [],
+        }
+    )
+    return json.dumps(
+        {
+            "title": "Seven checks before you spend another pound",
+            "meta_description": (
+                "Seven checks to run before spending more on Google Ads, "
+                "from tracking through to location and device settings."
+            ),
+            "card_excerpt": "Seven checks to run before spending more.",
+            "sections": sections,
+        }
+    )
+
+
+def _assert_title_fit() -> None:
+    assert promised_count("Seven checks before you spend another pound") == 7
+    assert promised_count("five signs the account is guessing") == 5
+    assert promised_count("3 checks worth doing first") == 3
+    assert promised_count("How a fractional marketing director spends the first month") is None
+    assert promised_count("Google Ads in 2026") is None
+    assert MODELS == ("gemini-3.8-flash", "gemini-flash-latest", "gemini-3.5-flash-lite")
+
+    thin = Draft(
+        title="Seven checks before you spend another pound",
+        description="A short note.",
+        excerpt="A short note.",
+        sections=[
+            Section(paragraphs=["Start here."]),
+            Section(heading="Tracking", paragraphs=["Look at the tag."]),
+            Section(heading="Search terms", paragraphs=["Read the report."]),
+            Section(heading="Landing page", paragraphs=["Read the page."]),
+        ],
+    )
+    problems = validation_problems("Seven checks before you spend another pound", thin)
+    assert any("promises 7" in item for item in problems)
+    assert any("words" in item for item in problems)
+
+    long_enough = draft_from_model(
+        _seven_draft_json(7, 120),
+        "Seven checks before you spend another pound",
+    )
+    assert validation_problems("Seven checks before you spend another pound", long_enough) == []
+    assert len(h2_headings(long_enough)) == 7
+    assert body_word_count(long_enough) >= MIN_BODY_WORDS
+
+    calls: list[str] = []
+
+    def thin_then_fit(model: str, prompt: str, key: str, json_mode: bool) -> tuple[int, str]:
+        calls.append(model)
+        if model != MODELS[0]:
+            return 200, _seven_draft_json(3, 20)
+        if sum(1 for name in calls if name == MODELS[0]) == 1:
+            return 200, _seven_draft_json(3, 20)
+        return 200, _seven_draft_json(7, 120)
+
+    draft, writer, _note = write_draft(
+        "Seven checks before you spend another pound",
+        "google ads not converting",
+        "",
+        "test-key",
+        False,
+        call=thin_then_fit,
+        wait=lambda _seconds: None,
+    )
+    assert writer == "gemini"
+    assert "gemini-3.8-flash" in _note
+    assert calls == [MODELS[0], MODELS[0]]
+    assert len(h2_headings(draft)) == 7
+
+    calls.clear()
+
+    def always_thin(model: str, prompt: str, key: str, json_mode: bool) -> tuple[int, str]:
+        calls.append(model)
+        return 200, _seven_draft_json(3, 20)
+
+    try:
+        write_draft(
+            "Seven checks before you spend another pound",
+            "google ads not converting",
+            "",
+            "test-key",
+            False,
+            call=always_thin,
+            wait=lambda _seconds: None,
+        )
+    except GeminiUnavailable as exc:
+        message = str(exc)
+    else:
+        raise SystemExit("Self-test failed. A short draft that misses the title was accepted.")
+    assert "No pull request was opened" in message
+    assert "still queued" in message
+    assert calls == [model for model in MODELS for _attempt in range(2)]
 
 
 def main() -> int:

@@ -1,0 +1,39 @@
+# Monday site check. Opens one GitHub issue. Does not change the site.
+name: Site health check
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: site-health
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check the script
+        run: python3 scripts/site_health.py --self-test
+
+      - name: Check the live site and the repository
+        run: python3 scripts/site_health.py --output /tmp/site-health-report.md
+
+      - name: Open the report as an issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/publish_health_issue.sh /tmp/site-health-report.md

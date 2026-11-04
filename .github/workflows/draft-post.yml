@@ -1,0 +1,59 @@
+# Tuesday and Thursday draft. Opens a pull request. Never pushes to main.
+name: Draft blog post
+
+on:
+  schedule:
+    - cron: "0 7 * * 2,4"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: draft-blog-post
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check the script
+        run: python3 scripts/draft_post.py --self-test
+
+      - name: See if a draft is already open
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/draft_gate.sh
+
+      - name: Prepare the next queued post
+        id: prepare
+        if: steps.gate.outputs.waiting != 'true'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python3 scripts/draft_post.py --apply
+
+      - name: Open a pull request
+        if: steps.prepare.outputs.created == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TOPIC: ${{ steps.prepare.outputs.topic }}
+          SLUG: ${{ steps.prepare.outputs.slug }}
+          FILENAME: ${{ steps.prepare.outputs.filename }}
+          DATE: ${{ steps.prepare.outputs.date }}
+          QUERY: ${{ steps.prepare.outputs.query }}
+          WRITER: ${{ steps.prepare.outputs.writer }}
+          BODYFILE: ${{ steps.prepare.outputs.bodyfile }}
+        run: bash scripts/open_draft_pr.sh

@@ -4,7 +4,9 @@ set -euo pipefail
 
 output="${GITHUB_OUTPUT:-/dev/null}"
 prs="$(gh pr list --state open --limit 100 --json number,title,headRefName)"
-open="$(printf '%s' "$prs" | jq -r '.[] | select(.headRefName | startswith("content-draft/")) | "#\(.number) \(.title)"')"
+# Any open content draft blocks a new one, including a second PR for the same row
+# when the branch name has a run-id suffix.
+open="$(printf '%s' "$prs" | jq -r '.[] | select((.headRefName | startswith("content-draft/")) or (.title | startswith("Draft: "))) | "#\(.number) \(.title)"')"
 
 if [[ -n "$open" ]]; then
   echo "waiting=true" >> "$output"

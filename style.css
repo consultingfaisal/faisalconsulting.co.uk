@@ -2354,3 +2354,8 @@ body { font-size: 17px; }
 .v2-portrait figcaption, .v2-model .v2-meta, .v2-quote figcaption, .v2-head p { font-size: 14px; }
 .v2-hero-note { font-size: 15px; }
 .v2-model-facts { font-size: 15px; }
+
+/* Download offer under the call CTA on ad landing pages */
+.lp-download { max-width: 760px !important; padding: 0 24px 64px; }
+.lp-download .teardown-gate { margin: 0; text-align: left; }
+@media (max-width: 760px) { .lp-download { padding: 0 20px 48px; } .lp-download .teardown-gate { padding: 22px 18px; } }

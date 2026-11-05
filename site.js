@@ -246,30 +246,33 @@
           }
         }
 
+        // If the email service is slow or down, still send the visitor to the
+        // download page: they get the resource and the download still counts.
+        // Only the lead email is lost, so flag it to GA4 (no personal data).
+        var controller = "AbortController" in window ? new AbortController() : null;
+        var timer = controller ? setTimeout(function () { controller.abort(); }, 8000) : null;
         try {
           var response = await fetch(endpoint, {
             method: "POST",
             body: new FormData(form),
-            headers: { Accept: "application/json" }
+            headers: { Accept: "application/json" },
+            signal: controller ? controller.signal : undefined
           });
-
-          if (!response.ok) throw new Error("Form submission failed");
-          window.location.assign(redirectUrl);
+          if (!response.ok) throw new Error("Form submission failed: " + response.status);
         } catch (error) {
-          if (errorMessage) {
-            errorMessage.hidden = false;
-            errorMessage.innerHTML = 'Sorry, the form could not be sent. Please try again or email <a href="mailto:hello@faisalconsulting.co.uk">hello@faisalconsulting.co.uk</a>.';
-          }
-
+          window.dataLayer.push({
+            event: "fc_form_backend_error",
+            form_subject: (form.querySelector('input[name="_subject"]') || {}).value || "",
+            error_type: error && error.name === "AbortError" ? "timeout" : "failed"
+          });
           if (submitButton) {
-            submitButton.disabled = false;
-            if (submitButton.tagName === "INPUT") {
-              submitButton.value = originalLabel;
-            } else {
-              submitButton.textContent = originalLabel;
-            }
+            if (submitButton.tagName === "INPUT") submitButton.value = originalLabel;
+            else submitButton.textContent = originalLabel;
           }
+          await new Promise(function (resolve) { setTimeout(resolve, 400); });
         }
+        if (timer) clearTimeout(timer);
+        window.location.assign(redirectUrl);
       });
     });
   }

@@ -9,6 +9,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write
 
 concurrency:
   group: draft-blog-post
@@ -17,8 +18,8 @@ concurrency:
 jobs:
   draft:
     runs-on: ubuntu-latest
-    # Gemini retries wait about 10 minutes, then the job still has to push a branch.
-    timeout-minutes: 30
+    # Gemini retries wait about 34 minutes, then the job still has to push a branch.
+    timeout-minutes: 60
     steps:
       - name: Check out main
         uses: actions/checkout@v4
@@ -58,3 +59,19 @@ jobs:
           WRITER: ${{ steps.prepare.outputs.writer }}
           BODYFILE: ${{ steps.prepare.outputs.bodyfile }}
         run: bash scripts/open_draft_pr.sh
+
+      # Same-day alert. Any failed step opens one issue that mentions Faisal,
+      # so GitHub emails him. Later failures add a comment to the same issue.
+      - name: Tell Faisal the draft failed
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: bash scripts/draft_failure_alert.sh fail
+
+      - name: Close the failure alert
+        if: success() && steps.prepare.outputs.created == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: bash scripts/draft_failure_alert.sh ok

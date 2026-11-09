@@ -40,9 +40,11 @@ EXPECTED_COLUMNS = ["date", "topic", "target_query", "status", "notes"]
 INSIGHTS_MARKER = '<h2 class="blog-section-title blog-section-title--second">Insights</h2>'
 # Stronger models first. gemini-3.5-flash-lite is only the last fallback.
 MODELS = ("gemini-3.8-flash", "gemini-flash-latest", "gemini-3.5-flash-lite")
-# Five tries. The four waits between them add up to 10 minutes.
-MAX_MODEL_ATTEMPTS = 5
-RETRY_BACKOFF_SECONDS = (30, 90, 180, 300)
+# Six tries. The five waits between them add up to 34 minutes.
+# Gemini outages and free-tier rate limits (HTTP 503 and 429 on 5 Nov 2026)
+# can last longer than a few minutes, so the later waits are long.
+MAX_MODEL_ATTEMPTS = 6
+RETRY_BACKOFF_SECONDS = (60, 180, 300, 600, 900)
 MIN_BODY_WORDS = 900
 COUNT_WORDS = {
     "two": 2,
@@ -741,7 +743,7 @@ def _unavailable(errors: list[str]) -> GeminiUnavailable:
     detail = " ".join(seen[-8:]) if seen else "Gemini did not return a draft."
     return GeminiUnavailable(
         "Gemini did not return a draft after retrying each model up to "
-        f"{MAX_MODEL_ATTEMPTS} times, with about 10 minutes of waits between tries. {detail} "
+        f"{MAX_MODEL_ATTEMPTS} times, with about {sum(RETRY_BACKOFF_SECONDS) // 60} minutes of waits between tries. {detail} "
         "No pull request was opened. The calendar row is still queued, so the next run will try again."
     )
 
@@ -1155,7 +1157,7 @@ def _sample_model_json() -> str:
 
 
 def _assert_gemini_retries() -> None:
-    assert sum(RETRY_BACKOFF_SECONDS) == 600
+    assert sum(RETRY_BACKOFF_SECONDS) == 2040
     assert len(RETRY_BACKOFF_SECONDS) == MAX_MODEL_ATTEMPTS - 1
     topic = "How a fractional marketing director spends the first month"
     sleeps: list[float] = []
@@ -1176,7 +1178,7 @@ def _assert_gemini_retries() -> None:
     draft, writer, _note = write_draft(topic, "query", "", "test-key", False, call=busy_then_ok, wait=no_wait)
     assert writer == "gemini"
     assert draft.title == topic
-    assert sleeps == [30, 90]
+    assert sleeps == list(RETRY_BACKOFF_SECONDS[:2])
     assert sum(1 for name, _mode in calls if name == MODELS[0]) == 3
     assert "[FAISAL TO ADD]" in MODEL_RULES
 
@@ -1193,7 +1195,7 @@ def _assert_gemini_retries() -> None:
         message = str(exc)
     else:
         raise SystemExit("Self-test failed. A run of HTTP 503 responses still returned a draft.")
-    assert sleeps == [30, 90, 180, 300]
+    assert sleeps == list(RETRY_BACKOFF_SECONDS)
     assert "No pull request was opened" in message
     assert "still queued" in message
     assert all(sum(1 for name, _mode in calls if name == model) == MAX_MODEL_ATTEMPTS for model in MODELS)
@@ -1227,7 +1229,7 @@ def _assert_gemini_retries() -> None:
     sleeps.clear()
     draft, writer, _note = write_draft(topic, "query", "", "test-key", False, call=limited_then_ok, wait=no_wait)
     assert writer == "gemini"
-    assert sleeps == [30]
+    assert sleeps == list(RETRY_BACKOFF_SECONDS[:1])
     assert sum(1 for name, _mode in calls if name == MODELS[0]) == 2
 
     with tempfile.TemporaryDirectory() as tmp:

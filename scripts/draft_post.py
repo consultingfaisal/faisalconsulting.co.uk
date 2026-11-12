@@ -785,7 +785,14 @@ def write_draft(
     force_placeholder: bool,
     call=None,
     wait=None,
+    draft_json: str = "",
 ) -> tuple[Draft, str, str]:
+    if draft_json:
+        draft = draft_from_model(Path(draft_json).read_text(encoding="utf-8"), topic)
+        problems = validation_problems(topic, draft)
+        if problems:
+            raise SystemExit("The Claude draft failed the checks. " + " ".join(problems) + " Nothing was written.")
+        return draft, "claude", "Claude (written and fact checked by the daily post task)."
     if force_placeholder or not key:
         return (
             placeholder_draft(topic, query),
@@ -893,6 +900,7 @@ def build(
     force_placeholder: bool,
     call=None,
     wait=None,
+    draft_json: str = "",
 ) -> Built:
     reference_path = root / REFERENCE_POST
     if not reference_path.is_file():
@@ -909,7 +917,8 @@ def build(
     slug = slugify(row["topic"])
     filename = unique_filename(root, slug)
     draft, writer, writer_note = write_draft(
-        row["topic"], row["target_query"], row["notes"], key, force_placeholder, call=call, wait=wait
+        row["topic"], row["target_query"], row["notes"], key, force_placeholder, call=call, wait=wait,
+        draft_json=draft_json,
     )
     chrome = load_chrome(reference_path.read_text(encoding="utf-8"))
     related = choose_related(root, row["topic"], row["target_query"], row["notes"])
@@ -1391,6 +1400,7 @@ def main() -> int:
     parser.add_argument("--topic", default="")
     parser.add_argument("--force-placeholder", action="store_true")
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--draft-json", default="", help="Use this JSON draft (Gemini shape) instead of calling Gemini.")
     args = parser.parse_args()
     if args.self_test:
         self_test()
@@ -1420,13 +1430,23 @@ def main() -> int:
 
     rows = read_calendar(calendar_path)
     picked = next_queued(rows)
+    if args.topic:
+        matches = [(i, r) for i, r in enumerate(rows) if r["topic"] == args.topic and r["status"].lower() == "queued"]
+        if not matches:
+            raise SystemExit("No queued calendar row has that exact topic. Nothing was drafted.")
+        picked = matches[0]
     if picked is None:
         set_output("created", "false")
         log("No queued topics in the content calendar. Nothing was drafted.")
         return 0
     index, row = picked
     try:
-        built = build(root, index, row, api_key(args.force_placeholder), args.force_placeholder)
+        built = build(
+            root, index, row, "" if args.draft_json else api_key(args.force_placeholder),
+            args.force_placeholder, draft_json=args.draft_json,
+        )
+        if args.draft_json and built.markers:
+            raise SystemExit("The Claude draft still has [FAISAL TO ADD] markers. Nothing was written.")
     except GeminiUnavailable as exc:
         set_output("created", "false")
         log(str(exc))

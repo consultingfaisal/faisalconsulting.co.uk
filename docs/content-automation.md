@@ -1,11 +1,28 @@
 # Content automation
 
+## Daily post (since 12 Nov 2026)
+
+One blog post goes live every morning. Faisal asked for this on 12 Nov 2026. Claude writes it in a scheduled task, not Gemini.
+
+Each morning the task:
+
+1. Takes the earliest `queued` row in `content/calendar.csv`.
+2. Researches it and checks every fact against an official source (Google's own help pages for Google Ads, GA4 and Search Console; gov.uk for UK rules). Anything it cannot check is left out.
+3. Writes the body as JSON and builds the page with `python3 scripts/draft_post.py --apply --topic "<topic>" --draft-json <file>`. That uses the same template, length check, section count check and 60 character title check as before, and refuses any `[FAISAL TO ADD]` marker.
+4. Opens a pull request and merges it once the page renders. The publish workflow then sets the date and tells IndexNow, as before.
+
+Rows marked `needs-input` are skipped. They need something only Faisal knows (his own process, a client he can name). Change the row to `queued` once the notes say what he wants included.
+
+When fewer than seven rows are `queued`, the task adds new ones from Search Console queries, never repeating a post or a service page.
+
+The Gemini workflow below is still there, but it now runs only by hand.
+
 Two GitHub Actions keep the site ticking over. They are free. They do not publish anything by themselves. A blog post goes live only when you merge its pull request.
 
 The workflows run from the main branch:
 
 - **Site health check**, Monday at 06:00 UTC (6:00am UK time in winter, 7:00am in British Summer Time). It also has a button to run it by hand.
-- **Draft blog post**, Tuesday and Thursday at 07:00 UTC (7:00am UK time in winter, 8:00am in British Summer Time). It can also be run by hand.
+- **Draft blog post** (Gemini), by hand only since 12 Nov 2026.
 
 GitHub sometimes starts a scheduled run a few minutes late. Scheduled runs also stop if the repository has no commits for about 60 days. Editing the calendar counts as a commit.
 

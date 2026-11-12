@@ -1,9 +1,8 @@
-# Tuesday and Thursday draft. Opens a pull request. Never pushes to main.
+# Gemini fallback drafter. Run by hand only. Opens a pull request. Never pushes to main.
+# Since 12 Nov 2026 the daily post is written by Claude's scheduled task (see docs/content-automation.md).
 name: Draft blog post
 
 on:
-  schedule:
-    - cron: "0 7 * * 2,4"
   workflow_dispatch:
 
 permissions:

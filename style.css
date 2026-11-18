@@ -2359,3 +2359,4 @@ body { font-size: 17px; }
 .lp-download { max-width: 760px !important; padding: 0 24px 64px; }
 .lp-download .teardown-gate { margin: 0; text-align: left; }
 @media (max-width: 760px) { .lp-download { padding: 0 20px 48px; } .lp-download .teardown-gate { padding: 22px 18px; } }
+.blog-list > .blog-section-title--second:first-child { margin-top: 0; padding-top: 0; border-top: 0; }

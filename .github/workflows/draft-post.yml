@@ -4,6 +4,11 @@ name: Draft blog post
 
 on:
   workflow_dispatch:
+    inputs:
+      check_only:
+        description: "Only test whether Gemini answers. Drafts nothing."
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -20,10 +25,10 @@ jobs:
     # Gemini retries wait about 34 minutes, then the job still has to push a branch.
     timeout-minutes: 60
     steps:
-      - name: Check out main
+      - name: Check out the branch this run started from
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.ref_name }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -39,9 +44,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: bash scripts/draft_gate.sh
 
+      - name: Check Gemini answers (check only)
+        if: inputs.check_only
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python3 scripts/draft_post.py --check-gemini
+
       - name: Prepare the next queued post
         id: prepare
-        if: steps.gate.outputs.waiting != 'true'
+        if: ${{ !inputs.check_only && steps.gate.outputs.waiting != 'true' }}
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python3 scripts/draft_post.py --apply

@@ -44,6 +44,9 @@ MODELS = ("gemini-3.8-flash", "gemini-flash-latest", "gemini-3.5-flash-lite")
 # Gemini outages and free-tier rate limits (HTTP 503 and 429 on 5 Nov 2026)
 # can last longer than a few minutes, so the later waits are long.
 MAX_MODEL_ATTEMPTS = 6
+# A full post can take more than a minute to generate (the 60 second limit
+# showed up as "could not be reached" on 10 and 12 Nov 2026).
+REQUEST_TIMEOUT_SECONDS = 180
 RETRY_BACKOFF_SECONDS = (60, 180, 300, 600, 900)
 MIN_BODY_WORDS = 900
 COUNT_WORDS = {
@@ -653,6 +656,36 @@ def pause(seconds: float) -> None:
     time.sleep(seconds)
 
 
+def google_reason(detail: str) -> str:
+    """The status and message from a Gemini error body, or its first 200 characters."""
+    try:
+        error = json.loads(detail).get("error") or {}
+        reason = " ".join(str(x) for x in (error.get("status"), error.get("message")) if x)
+        return reason[:200] or detail[:200]
+    except (ValueError, AttributeError):
+        return detail[:200] or "no message"
+
+
+def check_gemini(key: str, call=None) -> int:
+    """Send one tiny request to each model. Writes nothing. Returns 0 if any model answers."""
+    if not key:
+        log("No GEMINI_API_KEY is set.")
+        return 1
+    call = call or call_gemini
+    working = []
+    for model in MODELS:
+        code, text = call(model, "Reply with the single word OK.", key, False)
+        if code == 200 and text.strip():
+            log(f"{model}: working.")
+            working.append(model)
+        elif code in (401, 403):
+            log(f"{model}: Gemini did not accept the API key (HTTP {code}). {google_reason(text)}")
+        else:
+            log(f"{model}: HTTP {code or 'no answer'}. {google_reason(text)}")
+    log(f"{len(working)} of {len(MODELS)} Gemini models answered.")
+    return 0 if working else 1
+
+
 def call_gemini(model: str, prompt: str, key: str, json_mode: bool) -> tuple[int, str]:
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
     generation: dict[str, object] = {"temperature": 0.3, "maxOutputTokens": 8192}
@@ -669,15 +702,15 @@ def call_gemini(model: str, prompt: str, key: str, json_mode: bool) -> tuple[int
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=60) as response:
+        with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT_SECONDS) as response:
             body = response.read().decode("utf-8", "replace")
             code = int(response.status)
     except urllib.error.HTTPError as exc:
-        detail = exc.read().decode("utf-8", "replace")
-        log(f"Gemini {model} returned HTTP {exc.code}.")
-        return exc.code, redact(detail, key)[:300]
+        detail = redact(exc.read().decode("utf-8", "replace"), key)
+        log(f"Gemini {model} returned HTTP {exc.code}. Google said: {google_reason(detail)}")
+        return exc.code, detail[:300]
     except Exception as exc:
-        log(f"Gemini {model} could not be reached.")
+        log(f"Gemini {model} could not be reached ({type(exc).__name__}: {redact(str(exc), key)[:120]}).")
         return 0, redact(str(exc), key)[:300]
     try:
         parsed = json.loads(body)
@@ -768,7 +801,7 @@ def _one_attempt(model: str, prompt: str, key: str, topic: str, call) -> tuple[s
         if code in (401, 403):
             return "auth", "Gemini did not accept the API key."
         if code == 429 or code == 0 or code >= 500:
-            reason = "could not be reached" if code == 0 else f"HTTP {code}"
+            reason = "could not be reached" if code == 0 else f"HTTP {code} ({google_reason(text)})"
             return "retry", f"{model} returned {reason}."
         if code == 404:
             return "skip", f"{model} was not found."
@@ -1135,6 +1168,9 @@ def self_test() -> None:
         assert "AIza" not in built.html
 
     _assert_gemini_retries()
+    assert google_reason('{"error":{"code":503,"status":"UNAVAILABLE","message":"The model is overloaded."}}') == "UNAVAILABLE The model is overloaded."
+    assert check_gemini("k", call=lambda m, p, k, j: (503, '{"error":{"status":"UNAVAILABLE"}}')) == 1
+    assert check_gemini("k", call=lambda m, p, k, j: (200, "OK") if m == MODELS[-1] else (503, "")) == 0
     _assert_title_fit()
     print("Draft post self-test passed.", file=sys.stderr)
 
@@ -1400,11 +1436,14 @@ def main() -> int:
     parser.add_argument("--topic", default="")
     parser.add_argument("--force-placeholder", action="store_true")
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--check-gemini", action="store_true", help="Ask each Gemini model for one word. Writes nothing.")
     parser.add_argument("--draft-json", default="", help="Use this JSON draft (Gemini shape) instead of calling Gemini.")
     args = parser.parse_args()
     if args.self_test:
         self_test()
         return 0
+    if args.check_gemini:
+        return check_gemini(api_key(False))
 
     root = Path(args.root).resolve()
     calendar_path = Path(args.calendar) if args.calendar else root / CALENDAR_NAME

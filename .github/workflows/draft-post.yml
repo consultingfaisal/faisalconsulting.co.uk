@@ -25,10 +25,10 @@ jobs:
     # Gemini retries wait about 34 minutes, then the job still has to push a branch.
     timeout-minutes: 60
     steps:
-      - name: Check out main
+      - name: Check out the branch this run started from
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.ref_name }}
 
       - name: Set up Python
         uses: actions/setup-python@v5

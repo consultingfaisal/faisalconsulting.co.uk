@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash", "Read", "Edit", "Write", "Glob", "Grep", "WebFetch", "WebSearch",
+      "mcp__Base44", "mcp__Semrush", "mcp__Google_Drive", "mcp__Google_Docs",
+      "mcp__Claude_Docs", "mcp__Supermetrics_Marketing_Analytics",
+      "mcp__Windsor_ai__get_data", "mcp__Windsor_ai__get_fields", "mcp__Windsor_ai__get_connectors",
+      "mcp__claude-code-remote", "mcp__Runway",
+      "mcp__Gmail__search_threads", "mcp__Gmail__get_thread", "mcp__Gmail__create_draft"
+    ]
+  }
+}

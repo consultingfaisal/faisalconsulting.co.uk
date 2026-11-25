@@ -95,3 +95,17 @@ The draft workflow is allowed to push a branch and open a pull request. It is no
 ## What these workflows will not do
 
 They will not merge their own pull requests, edit a live page in place, or commit straight to main. They will not invent a topic. An empty calendar produces no draft.
+
+## CSS and JavaScript
+
+Pages load the minified files `style.min.css` and `site.min.js`. Edit the readable sources, `style.css` and `site.js`, then run:
+
+```
+python3 scripts/minify_assets.py
+```
+
+That rebuilds the minified files and updates the `?v=` number on every page, so browsers fetch the new version. Commit the sources, the `.min` files and the pages together. The **Check minified assets** workflow fails a pull request if they are out of date. New blog posts copy the asset lines from an existing post, so they load the minified files too.
+
+## Related reading
+
+Each article ends with a short **Related reading** list (`<aside class="related-reading">`), so every post is linked from at least two other pages as well as the Insights list. When a new post goes live, add it to the related reading of two older posts on the same topic.

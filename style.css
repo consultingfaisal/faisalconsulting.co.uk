@@ -2147,6 +2147,10 @@ a:focus-visible, button:focus-visible {
 .teardown-gate .resource-form { max-width: 100%; }
 
 .blog-post-note { font-size: 13px; color: var(--charcoal); font-style: italic; margin-top: 32px; }
+.related-reading { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--rule); }
+.related-reading-title { font-weight: 700; margin: 0 0 8px; }
+.related-reading ul { margin: 0; padding-left: 20px; }
+.related-reading li { margin: 6px 0; }
 
 /* ==========================================================================
    Brand v2 (November 2026): forest + lime, ledger layout.

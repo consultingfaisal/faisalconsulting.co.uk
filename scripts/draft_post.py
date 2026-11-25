@@ -284,7 +284,7 @@ def unique_filename(root: Path, slug: str) -> str:
 def load_chrome(reference_html: str) -> dict[str, str]:
     text = reference_html.replace("\r\n", "\n")
     preload = re.search(r'^<link rel="preload" href="archivo-latin\.woff2"[^\n]*$', text, re.M)
-    assets = re.search(r'^<link rel="stylesheet" href="style\.css\?v=[^"]+"[^\n]*$', text, re.M)
+    assets = re.search(r'^<link rel="stylesheet" href="style(?:\.min)?\.css\?v=[^"]+"[^\n]*$', text, re.M)
     body = re.search(r"<body>\n.*?</header>\n\n", text, re.S)
     footer = re.search(r'<footer class="site-footer wrap">.*\Z', text, re.S)
     missing = [
@@ -1109,10 +1109,10 @@ def self_test() -> None:
         assert "[FAISAL TO ADD]" in built.html
         assert "How a fractional marketing director spends the first month" in built.html
         assert "fractional marketing director first month" in built.html
-        assert 'href="style.css?v=' in built.html
-        assert re.search(r'^<link rel="stylesheet" href="style\.css\?v=[^"]+"[^\n]*$', reference, re.M).group(0) in built.html
+        assert 'href="style.min.css?v=' in built.html
+        assert re.search(r'^<link rel="stylesheet" href="style(?:\.min)?\.css\?v=[^"]+"[^\n]*$', reference, re.M).group(0) in built.html
         assert re.search(r"<body>\n.*?</header>\n\n", reference, re.S).group(0) in built.html
-        assert 'src="site.js?v=' in built.html
+        assert 'src="site.min.js?v=' in built.html
         assert "I use analytics" in built.html
         assert "Fractional CMO in Spain" in built.html
         assert f"{SITE}/#faisal" in built.html

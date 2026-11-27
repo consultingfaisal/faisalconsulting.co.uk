@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<meta name="description" content="What Google Consent Mode v2 does, how basic and advanced setups differ, why your conversions and audiences change, and how to check your own setup.">
+<title>Consent Mode v2 in plain English: what changes in your data</title>
+<link rel="canonical" href="https://faisalconsulting.co.uk/blog-consent-mode-v2-in-plain-english-what-it-changes-in-your-numbers.html">
+<meta property="og:title" content="Consent Mode v2 in plain English: what changes in your data">
+<meta property="og:description" content="What Consent Mode v2 does, why your conversion and audience numbers shift, and how to check your own setup.">
+<meta property="og:image" content="https://faisalconsulting.co.uk/social-preview.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://faisalconsulting.co.uk/blog-consent-mode-v2-in-plain-english-what-it-changes-in-your-numbers.html">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Consent Mode v2 in plain English: what changes in your data">
+<meta name="twitter:description" content="What Google Consent Mode v2 does, how basic and advanced setups differ, why your conversions and audiences change, and how to check your own setup.">
+<meta name="twitter:image" content="https://faisalconsulting.co.uk/social-preview.jpg">
+<link rel="preload" href="archivo-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="ibm-plex-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.min.css?v=2323dc188e"><link rel="icon" href="favicon-mark.svg" type="image/svg+xml"><link rel="icon" href="favicon-mark.png" type="image/png">
+
+
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Consent Mode v2 in plain English: what it changes in your numbers","description":"What Google Consent Mode v2 does, how basic and advanced setups differ, why your conversions and audiences change, and how to check your own setup.","url":"https://faisalconsulting.co.uk/blog-consent-mode-v2-in-plain-english-what-it-changes-in-your-numbers.html","mainEntityOfPage":{"@type":"WebPage","@id":"https://faisalconsulting.co.uk/blog-consent-mode-v2-in-plain-english-what-it-changes-in-your-numbers.html"},"datePublished":"2026-11-27","dateModified":"2026-11-27","author":{"@type":"Person","@id":"https://faisalconsulting.co.uk/#faisal","name":"Faisal Mahmud","jobTitle":"Fractional Marketing Director","url":"https://faisalconsulting.co.uk/"},"publisher":{"@type":"Organization","@id":"https://faisalconsulting.co.uk/#org","name":"Faisal Consulting","url":"https://faisalconsulting.co.uk/","logo":{"@type":"ImageObject","url":"https://faisalconsulting.co.uk/logo.png"}},"image":"https://faisalconsulting.co.uk/social-preview.jpg"}</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://faisalconsulting.co.uk/"},{"@type":"ListItem","position":2,"name":"Insights","item":"https://faisalconsulting.co.uk/blog.html"},{"@type":"ListItem","position":3,"name":"Consent Mode v2 in plain English: what it changes in your numbers","item":"https://faisalconsulting.co.uk/blog-consent-mode-v2-in-plain-english-what-it-changes-in-your-numbers.html"}]}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<header class="site-header site-header--sticky">
+  <div class="wrap header-inner">
+    <a class="wordmark wordmark--logo" href="index.html"><img src="logo-reverse.svg" alt="Faisal Consulting" class="wordmark-img" width="202" height="34"></a>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-menu"><span></span><span></span><span></span></button>
+    <div class="header-links" id="nav-menu">
+      <a class="nav-link" href="case-studies.html">Case studies</a>
+      <a class="nav-link" href="services.html">Services</a>
+      <a class="nav-link" href="resources.html">Free resources</a>
+      <a class="nav-link" href="blog.html">Insights</a>
+      <a class="nav-cta" href="https://calendly.com/hello-faisalconsulting/30min">Book a call</a>
+    </div>
+  </div>
+</header>
+
+<main id="main-content">
+  <section class="hero wrap cs-hero">
+    <p class="back-link"><a href="blog.html">&larr; Insights</a></p>
+    <h1>Consent Mode v2 in plain English: what it changes in your numbers</h1>
+    <p class="hero-sub">27 November 2026</p>
+  </section>
+
+  <article class="blog-post wrap">
+    <p>Many businesses noticed their Google Ads and Google Analytics numbers change after a cookie banner went live. Conversions dropped. Audiences shrank. Some reports started saying the numbers were modelled. Most of this comes back to one thing: consent mode.</p>
+    <p>Consent mode is how your website tells Google tags what a visitor agreed to. Version 2 added two new signals. If they are missing or set up wrongly, you can lose measurement and remarketing without any error message telling you so.</p>
+    <p>This guide explains what consent mode does, what changed in version 2, how the two setups differ, and how to check yours.</p>
+
+    <h2>What consent mode actually is</h2>
+    <p>Consent mode is not a cookie banner. Google says so plainly: it does not provide a banner or widget. It works with the banner you already have, whether you built it yourself or use a consent management platform.</p>
+    <p>The banner asks the visitor. Consent mode passes the answer to your Google tags, such as the Google Ads tag and the Google Analytics tag. The tags then change how they behave based on that answer.</p>
+    <p>So two things need to be right. The banner has to ask the right questions. And the answers have to reach the tags in the format Google expects.</p>
+
+    <h2>The four signals and what each one controls</h2>
+    <p>Consent mode uses four main signals. Each one is either granted or denied.</p>
+    <ul>
+      <li>ad_storage: whether advertising cookies can be stored and read.</li>
+      <li>analytics_storage: whether analytics cookies can be stored and read, for things like visit length.</li>
+      <li>ad_user_data: whether data about the visitor can be sent to Google for advertising. Google says this is needed for measurement such as enhanced conversions and tag based conversion tracking.</li>
+      <li>ad_personalization: whether the visitor can be shown personalised ads, which includes remarketing.</li>
+    </ul>
+
+    <h2>What version 2 changed</h2>
+    <p>The original consent mode had the two storage signals. Version 2 added ad_user_data and ad_personalization.</p>
+    <p>Google added them as part of stronger enforcement of its EU user consent policy. That policy covers visitors in the European Economic Area. Advertisers who use Google tags for those visitors need to send these signals to use personalised advertising and measurement.</p>
+    <p>Google's own guidance gave a clear deadline for audiences. If you took no action, only visitors outside the EEA would be added to the audiences used by your linked advertising products from early March 2024.</p>
+    <p>If you use a consent management platform that works with Google, Google says it should update to the newer version automatically. If you built your own banner, you need to add the two new signals yourself.</p>
+    <p>UK rules on cookies sit under PECR, and the ICO publishes guidance on them. Google's version 2 pages focus on the EEA. If you sell into the EEA as well as the UK, which many UK businesses do, the version 2 signals matter to you.</p>
+
+    <h2>Basic and advanced: the choice that changes your data most</h2>
+    <p>There are two ways to set up consent mode, and they give you very different data.</p>
+    <p>With basic consent mode, Google tags do not load until the visitor uses the banner. If they decline, nothing is sent to Google at all, not even the fact that they declined.</p>
+    <p>With advanced consent mode, tags load when the page opens, with consent set to denied by default unless you set it otherwise. While consent is denied, the tags send cookieless pings instead of full data. These pings include things like a timestamp, the browser's user agent, the referrer and whether the visit came from an ad click. No advertising or analytics cookies are written or read. If the visitor then accepts, the tags switch to normal behaviour.</p>
+    <p>The difference shows up in modelling. Google uses the pings to model the conversions it cannot observe. With advanced, Google Ads uses a model specific to your account. With basic, it falls back on a general model.</p>
+    <p>Which one is right is a decision for your business and its advisers. What matters here is that you know which one you have, because it explains a lot about your numbers.</p>
+
+    <h2>Why your conversions look different</h2>
+    <p>When a visitor declines, Google cannot use cookies to link their ad click to a later conversion. Without consent mode, that conversion would simply be missing.</p>
+    <p>Consent mode lets Google estimate some of those missing conversions. Google calls this conversion modelling. It is not automatic for every account. Google Ads states a threshold of 700 ad clicks over 7 days for a given domain and country. Below that, modelling does not switch on.</p>
+    <p>This explains a common pattern. A larger account sees a small dip after the banner goes live, then partial recovery once modelling starts. A smaller account below the threshold sees the dip and no recovery.</p>
+    <p>GA4 has its own version, called behavioural modelling, with stricter conditions. Your property needs advanced consent mode on every page. It also needs at least 1,000 events a day from visitors who declined analytics, for at least 7 days. And it needs at least 1,000 daily users who accepted, on at least 7 of the previous 28 days. Many small business sites do not reach this, so their GA4 reports simply show fewer users.</p>
+
+    <h2>Why your audiences and remarketing shrink</h2>
+    <p>This part often surprises people. Google's reference says that ad_user_data and ad_personalization both need to be granted for personalised advertising.</p>
+    <p>If ad_personalization is denied, remarketing in Google Ads receives no data from that visitor. If ad_user_data is denied, data such as a user ID or hashed customer details is not used for advertising.</p>
+    <p>Modelling does not fill this gap. GA4 behavioural modelling does not support audiences. So remarketing lists only grow from visitors who agreed. If your lists stopped growing, check that the two version 2 signals are being sent at all. A banner that only sends the two storage signals can leave both new signals missing.</p>
+
+    <h2>How to check your own setup</h2>
+    <p>You do not need a developer for a first check. Google gives you three places to look.</p>
+    <ul>
+      <li>Tag Assistant: start a session on your site and use the banner. The first consent event should show the default as denied. After you accept, the update should show granted. It also shows which tags fired and which were blocked.</li>
+      <li>Google Ads: open Goals, then Conversions, then Summary. Select a website conversion action and open the Diagnostics tab. It will say consent mode is implemented, or that it is implemented and modelling is active. Google notes this can take 48 hours to appear, and up to two weeks in some cases.</li>
+      <li>GA4: open Admin, then Data collection and modification, then Consent settings. It shows whether advertising and analytics consent signals are coming through for EEA traffic. Changes can take 48 to 72 hours to show.</li>
+      <li>Your banner itself: decline everything, then check that no advertising or analytics cookies appear in your browser. If cookies appear before anyone clicks, raise it with whoever manages your site.</li>
+    </ul>
+
+    <h2>What to do with what you find</h2>
+    <p>Write down which setup you have, basic or advanced, and whether all four signals are sent. Add the date your banner or consent mode changed. Without that date, a drop in conversions is easy to misread as a campaign problem.</p>
+    <p>Then compare like with like. Compare periods after the change with each other, not with the months before it. And when someone reports a sudden fall in conversions, ask whether anything changed in the banner or tags that week before anyone touches bids or budgets.</p>
+
+    <p>Consent mode will not make your numbers match the world before cookie banners. It can make sure you keep the data you are allowed to keep, and that you know which numbers are measured and which are modelled. If you are not sure your tracking tells you the truth, our marketing performance audit checks consent, tags and conversion tracking before it looks at campaign results.</p>
+  </article>
+<nav class="related-links wrap" aria-label="Related"><p><a href="marketing-performance-audit.html">Marketing Performance Audit: What It Covers</a> <span aria-hidden="true">·</span> <a href="services.html">Marketing Services and Engagement Models</a></p></nav>
+</main>
+
+<footer class="site-footer wrap">
+  <p>Faisal Mahmud <span aria-hidden="true">·</span> Alicante, Spain <span aria-hidden="true">·</span> <a href="https://www.linkedin.com/in/performance-marketing-and-digital-strategy/">LinkedIn</a> <span aria-hidden="true">·</span> <a href="privacy-policy.html">Privacy Policy</a></p>
+  <p class="footer-links"><a href="services.html">Marketing Services and Engagement Models</a> <span aria-hidden="true">·</span> <a href="fractional-cmo.html">Fractional CMO for UK and European Brands</a> <span aria-hidden="true">·</span> <a href="fractional-marketing-director.html">Fractional Marketing Director UK</a> <span aria-hidden="true">·</span> <a href="google-ads-audit.html">Google Ads Audit</a> <span aria-hidden="true">·</span> <a href="interim-marketing-director.html">Interim Marketing Director</a> <span aria-hidden="true">·</span> <a href="fractional-marketing-director-london.html">Fractional Marketing Director for London Businesses</a> <span aria-hidden="true">·</span> <a href="fractional-marketing-director-cost.html">How Much Does a Fractional Marketing Director Cost?</a> <span aria-hidden="true">·</span> <a href="ir35-fractional-marketing.html">IR35 and Fractional Marketing Directors, Explained</a> <span aria-hidden="true">·</span> <a href="marketing-performance-audit.html">Marketing Performance Audit: What It Covers</a> <span aria-hidden="true">·</span> <a href="marketing-consultant.html">Marketing Consultant, UK and Europe</a> <span aria-hidden="true">·</span> <a href="employer-branding-spain.html">Employer Branding Consultant Spain</a> <span aria-hidden="true">·</span> <a href="fractional-cmo-spain.html">Fractional CMO in Spain</a></p>
+</footer>
+
+<div id="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie choices" hidden>
+  <p>I use analytics and advertising measurement only if you accept. You can change your choice at any time. <a href="privacy-policy.html">Privacy Policy</a>.</p>
+  <button type="button" class="cookie-btn cookie-btn--accept" data-consent="accept">Accept</button>
+  <button type="button" class="cookie-btn cookie-btn--decline" data-consent="decline">Decline</button>
+</div>
+<script src="site.min.js?v=e2fcc6b16b"></script>
+</body>
+</html>
